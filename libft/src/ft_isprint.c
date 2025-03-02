@@ -1,16 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   ft_isprint.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/01 16:29:17 by oelleaum         ###   ########lyon.fr   */
+/*   Created: 2024/11/04 14:57:03 by oelleaum          #+#    #+#             */
+/*   Updated: 2024/11/20 16:21:54 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#include "libft.h"
 
-#endif
+int	ft_isprint(int c)
+{
+	if (c < 32 || c > 126)
+		return (0);
+	else
+		return (1);
+}

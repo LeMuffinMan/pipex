@@ -1,16 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   ft_bzero.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/01 16:29:17 by oelleaum         ###   ########lyon.fr   */
+/*   Created: 2024/11/06 11:33:23 by oelleaum          #+#    #+#             */
+/*   Updated: 2024/11/21 15:07:17 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#include "libft.h"
 
-#endif
+void	ft_bzero(void *s, size_t n)
+{
+	unsigned char	*str;
+
+	str = (unsigned char *) s;
+	while (n > 0)
+	{
+		*str = '\0';
+		str++;
+		n--;
+	}
+}

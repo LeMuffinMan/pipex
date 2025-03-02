@@ -1,16 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   ft_lstsize_bonus.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/01 16:29:17 by oelleaum         ###   ########lyon.fr   */
+/*   Created: 2024/11/20 12:13:42 by oelleaum          #+#    #+#             */
+/*   Updated: 2024/11/20 15:18:53 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#include "libft.h"
 
-#endif
+int	ft_lstsize(t_list *lst)
+{
+	t_list	*ptr;
+	size_t	i;
+
+	i = 0;
+	ptr = lst;
+	while (ptr != NULL)
+	{
+		ptr = ptr->next;
+		i++;
+	}
+	return (i);
+}

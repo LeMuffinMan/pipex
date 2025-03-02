@@ -14,7 +14,7 @@ NAME=pipex
 #BONUS_NAME=pipex_bonus
 
 CC=cc
-FLAGS=-Wall -Werror -Wextra
+CFLAGS=-Wall -Werror -Wextra
 INC=-I include
 INC_LIBFT=-I libft/include
 #INC_BONUS=-I bonus/include
@@ -26,6 +26,9 @@ LIBFT_SRC_DIR = libft/src
 LIBFT_OBJ_DIR = libft/obj
 #BONUS_SRC_DIR = bonus/src
 
+# Pour staisfaire le meilleur product manager du monde : TODO
+# Faire une variable pour le chemin 
+# Kenzo : faire la compil de la libft dans le makefile de la libft + y mettre la abs le printf et le gnl
 LIBFT_SRC_FILES = \
     libft/src/ft_atoi.c \
     libft/src/ft_bzero.c \
@@ -71,9 +74,16 @@ LIBFT_SRC_FILES = \
     libft/src/ft_toupper.c \
     libft/src/ft_split.c \
     libft/src/get_next_line.c \
-    libft/src/get_next_line_utils.c
+    libft/src/get_next_line_utils.c \
+    libft/src/ft_printf.c \
+    libft/src/hexa.c \
+    libft/src/int.c \
+    libft/src/ptr.c
 
 LIBFT_OBJ_FILES = $(LIBFT_SRC_FILES:.c=.o)
+
+SRC_FILES = \
+    src/pipex.c
 
 OBJ_FILES = $(SRC_FILES:.c=.o)
 OBJ = $(addprefix $(OBJ_DIR)/,$(OBJ_FILES))
@@ -96,22 +106,21 @@ $(NAME): $(OBJ) $(LIBFT_A) Makefile libft/Makefile libft/include/libft.h
 $(LIBFT_A): $(LIBFT_SRC_FILES) FORCE
 	@$(MAKE) --no-print-directory -C libft
 
-$(OBJ_DIR)/%.o: %.c Makefile ./include/fractol.h
+$(OBJ_DIR)/%.o: %.c Makefile ./include/pipex.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC) $(INC_LIBFT) -I . -c $< -o $@
 
-
-bonus: $(BONUS_NAME)
-
-$(BONUS_OBJ_DIR)/%.o: bonus/src_bonus/%.c ./bonus/include_bonus/fractol_bonus.h
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(INC_BONUS) -c $< -o $@
-
-$(BONUS_NAME): $(BONUS_OBJ_FILES) $(LIBFT_A) Makefile libft/Makefile ./bonus/include_bonus/fractol_bonus.h
-	$(CC) $(CFLAGS) $(BONUS_OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(BONUS_NAME)
-	@echo
-	@echo '$(GREEN)compilation successful ✅ $(BONUS_NAME)$(RESET)'
-	@echo
+# bonus: $(BONUS_NAME)
+#
+# $(BONUS_OBJ_DIR)/%.o: bonus/src_bonus/%.c ./bonus/include_bonus/fractol_bonus.h
+# 	@mkdir -p $(dir $@)
+# 	$(CC) $(CFLAGS) $(INC_BONUS) -c $< -o $@
+#
+# $(BONUS_NAME): $(BONUS_OBJ_FILES) $(LIBFT_A) Makefile libft/Makefile ./bonus/include_bonus/fractol_bonus.h
+# 	$(CC) $(CFLAGS) $(BONUS_OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(BONUS_NAME)
+# 	@echo
+# 	@echo '$(GREEN)compilation successful ✅ $(BONUS_NAME)$(RESET)'
+# 	@echo
 
 clean:
 	rm -rf $(OBJ_DIR)/*
