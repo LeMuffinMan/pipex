@@ -22,6 +22,7 @@
 # include <stdlib.h>
 # include <string.h>
 # include <unistd.h>
+# include <stdarg.h>
 
 typedef struct s_list
 {
@@ -79,5 +80,18 @@ char				*ft_strchr_protected(const char *s, int c);
 void				*ft_memmove(void *dest, const void *src, size_t n);
 char				*get_next_line(int fd);
 void				ft_bzero(void *s, size_t n);
+int		ft_printf(const char *s, ...);
+int		print(va_list params, char format);
+void	print_uint(unsigned int n);
+int		hexa_len(unsigned int n);
+int		dec_to_hex(unsigned int n, char format);
+int		f_hex(unsigned int p, char format);
+int		f_ptr(unsigned long long p);
+int		ptr_to_hex(unsigned long long n);
+int		ptr_len(unsigned long long n);
+int		f_uint(unsigned int n);
+int		f_int(int n);
+int		f_str(char *s);
+int		f_char(int c);
 
 #endif

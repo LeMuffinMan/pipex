@@ -43,6 +43,78 @@
 ///REVOIR LIBFT COmpile et virer le header en trop
 
 
+int from_file_to_pipe(char *file, int fd, char *cmd, char **envp)
+{
+  int infile;
+
+	infile = open(file, O_RDONLY);
+	if (infile == -1)
+  {
+    perror("Open error");
+	  exit (1);
+  }
+	dup2(fd, STDOUT_FILENO);
+	dup2(infile, STDIN_FILENO);
+  close (fd);
+  if (execute(cmd, envp) != 0)
+  {
+    close (infile);
+    perror("execve error");
+    exit(1);
+  }
+  close (infile);
+  return (0);
+}
+
+int from_pipe_to_file(char *file, int fd, char *cmd, char **envp)
+{
+  int outfile;
+
+	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (outfile == -1)
+  {
+    perror("Open error");
+	  exit (1);
+  }
+	dup2(fd, STDIN_FILENO);
+	dup2(outfile, STDOUT_FILENO);
+  close (fd);
+  if (execute(cmd, envp) != 0)
+  {
+    close (outfile);
+    perror("execve error");
+    //Exit ? wait child ?
+    exit(1);
+  }
+  close (outfile);
+  return (0);
+}
+
+int setup_pipe(int ac, int fd[2])
+{
+  int pid;
+
+  if (ac != 5)
+  {
+    ft_printf("Usage : ./pipex file1 cmd1 cmd2 file2\n");
+    //mettre en canal d'erreur plutot
+    exit (1);
+  }
+  ///La fonction pipe crée un tube (pipe) qui permet la communication entre deux processus. pipefd est un tableau de deux entiers où pipefd[0] est le descripteur de fichier pour la lecture et pipefd[1] pour l'écriture.
+  if (pipe(fd) == -1)
+  {
+    perror("pipe fct failed");
+    exit (1);
+  }
+  pid = fork();
+  if (pid == -1) 
+  {
+    perror("fork fct failed");
+    exit(1);
+  }
+  return(pid);
+}
+
 char *get_path_line(char **envp)
 {
   char *path_line;
@@ -53,6 +125,7 @@ char *get_path_line(char **envp)
   {
     if (ft_strncmp(envp[i], "PATH=", 5) == 0)
     {
+      //pas sur de ca 
       path_line = envp[i] + 5;
       break;
     }
@@ -88,7 +161,7 @@ char *which_cmd(char **paths, char *cmd)
   i = 0;
   while (paths[i])
   {
-    if (!join_full_path(binary, cmd, paths[i]))
+    if (!join_full_path(binary, cmd, path[i]))
     {
       perror("malloc error joining path");
       return (NULL);
@@ -106,14 +179,14 @@ char **get_paths(char **envp)
   char **paths;
 
   path_line = get_path_line(envp);
-  if (!*path_line) // si on vide le PATH , estce que le 6eme bite de la ligne PATH= est null ?
+  if (!path_line)
   {
     perror("path_line error");
     return (NULL);
   }
   //bien renvoyer null si ca merde
   paths = ft_split(path_line, ':');
-  /* free(path_line); //path_line pointe vers envp, donc pas a free ? */  
+  free(path_line);
   return (paths);
 }
 
@@ -142,112 +215,31 @@ char *get_binary(char **envp, char *cmd)
   return (binary); 
 }
 
-
-/* void free_and_exit(t_cmds **cmds) */
-/* { */
-/*   free_cmds(cmds); */
-/*   perror(""); */
-/*   exit (1); */
-/* } */
-
-int from_file_to_pipe(char *file, int fd[2], t_cmd cmd, char **envp)
+int execute(char *cmd, char **envp)
 {
-  int infile;
-
-  close (fd[0]);
-	infile = open(file, O_RDONLY);
-	if (infile == -1)
+  char *binary;
+ 
+  binary = get_binary(envp, cmd);
+  if (!binary)
   {
-    perror("Open error");
-    //selon l'open error on fait pas la meme chose ?
-    //on fait pas d'exec ?
-	  return (1);
+    perror("cmd_not_found");
+    return (1);
   }
-	dup2(fd[1], STDOUT_FILENO);
-	dup2(infile, STDIN_FILENO);
-  close (fd[1]); // j'en ai plus besoin ?
-  if (execve(cmd.binary, cmd.args, envp) != 0)
-  {
-    close (infile);
-    perror("execve error");
-	  return (1);
-  }
-  close (infile);
-  return (0);
+  success = execve(binary, args, envp);
+  free(binary);
+  return (success);
 }
 
-int from_pipe_to_file(char *file, int fd[2], t_cmd cmd, char **envp)
-{
-  int outfile;
-
-  close (fd[1]);
-	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (outfile == -1)
-  {
-    perror("Open error");
-    //selon l'open error on fait pas la meme chose ?
-    //on fait pas d'exec ?
-	  return (1);
-  }
-	dup2(fd[0], STDIN_FILENO);
-	dup2(outfile, STDOUT_FILENO);
-  close (fd[0]);
-  if (execve(cmd.binary, cmd.args, envp) != 0)
-  {
-    close (outfile);
-    perror("execve error");
-	  return (1);
-  }
-  close (outfile);
-  return (0);
-}
-
-void add_cmds(char **av, char **envp, t_cmd cmd1, t_cmd cmd2)
-{
-  //gerer les erreurs !
-  cmd1.binary = get_binary(av[2], envp);
-  cmd1.args = ft_split(av[2], ' ');
-  cmd2.binary = get_binary(av[3], envp);
-  cmd2.args = ft_split(av[3], ' ');
-}
-
-void free_cmd(t_cmd cmd)
-{
-  if (cmd.binary)
-    free(cmd1.binary);
-  if (cmd.args)
-    free(cmd.args);
-}
-
-int main (int ac, char **av, char **envp)
+int main(int ac, char **av, char **envp)
 {
   int fd[2];
   int pid;
-  int status;
-  t_cmd cmd1;
-  t_cmd cmd2;
 
-  //message d'erreur pour les args ?
-  if (ac != 5 || !envp) //suffit pour gerer l'env ?
-    exit (1);
-  if (pipe(fd) == -1)
-  {
-    perror("pipe fct failed");
-    exit (1);
-  }
-  add_cmds(av, envp, &cmd1, &cmd2);
-  pid = fork();
-  if (pid == 0)
-  {
-    from_file_to_pipe(av[1], fd, cmd1, envp); //Si le child rencontre une erreur ?
-    free_cmd(cmd1);
-  }
-  else
-  {
-    waitpid(pid &status, 0);
-    from_pipe_to_file(av[4], fd, cmd2, envp); //Error managment 
-    free_cmd(cmd2);
-  }
+  pid = setup_pipe(ac, fd);
+  if (pid == 0) // child process
+    from_file_to_pipe(av[1], fd[1], av[2], envp);
+  else //parent process
+    from_pipe_to_file(av[4], fd[0], av[3], envp);
   return (0);
 }
 
