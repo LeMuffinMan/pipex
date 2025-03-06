@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+// mettre un max fd dans l'include ?
+// dup2 et close a proteger ?
+
 #include <unistd.h>   // fork, pipe, dup2, execve, access, close, read, write
 #include <stdlib.h>   // exit
 #include <stdio.h>    // perror
@@ -42,6 +45,19 @@
 ///
 ///REVOIR LIBFT COmpile et virer le header en trop
 
+void	free_array(char **s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+	{
+		free(s[i]);
+		s[i] = NULL;
+		i++;
+	}
+	free(s);
+}
 
 char *get_path_line(char **envp)
 {
@@ -67,12 +83,17 @@ char *join_full_path(char *binary, char *cmd, char *path)
   int i;
   int j;
 
-  binary = malloc(sizeof(char) * ft_strlen(path[i]) + ft_strlen(cmd) + 2);
+  binary = malloc(sizeof(char) * ft_strlen(path) + ft_strlen(cmd) + 2);
   if (!binary)
-      return (NULL);
+      return (NULL); //A gerer autrement pour differencier malloc error et path null
+  i = 0;
   while (path[i])
-      binary[i] = path[i++];
+  {
+    binary[i] = path[i];
+    i++;
+  }
   binary[i++] = '/';
+  j = 0;
   while (cmd[j])
       binary[i++] = cmd[j++];
   binary[i] = '\0';
@@ -88,22 +109,21 @@ char *which_cmd(char **paths, char *cmd)
   i = 0;
   while (paths[i])
   {
-    if (!join_full_path(binary, cmd, paths[i]))
-    {
-      perror("malloc error joining path");
-      return (NULL);
-    }
+    binary = join_full_path(binary, cmd, paths[i]);
+    /* printf("binary = %s\n", binary); */
     if (access(binary, X_OK) == 0)
       return (binary);
+    free(binary);
     i++;
   }
+  binary = NULL;
   return (binary);
 }
 
 char **get_paths(char **envp)
 {
   char *path_line;
-  char **paths;
+  char **paths = NULL;
 
   path_line = get_path_line(envp);
   if (!*path_line) // si on vide le PATH , estce que le 6eme bite de la ligne PATH= est null ?
@@ -111,19 +131,18 @@ char **get_paths(char **envp)
     perror("path_line error");
     return (NULL);
   }
-  //bien renvoyer null si ca merde
+  /* //bien renvoyer null si ca merde */
   paths = ft_split(path_line, ':');
-  /* free(path_line); //path_line pointe vers envp, donc pas a free ? */  
   return (paths);
 }
 
-char *get_binary(char **envp, char *cmd)
+char *get_binary(char *cmd, char **envp)
 {
   char **paths;
   char **args;
   char *binary;
 
-  paths = get_paths();
+  paths = get_paths(envp);
   if (!paths)
   {
     perror("get paths error");
@@ -142,13 +161,26 @@ char *get_binary(char **envp, char *cmd)
   return (binary); 
 }
 
+void free_cmd(t_cmd cmd)
+{
+  if (cmd.binary)
+    free(cmd.binary);
+  if (cmd.args)
+    free_array(cmd.args);
+  cmd.binary = NULL;
+  cmd.args = NULL;
+}
 
-/* void free_and_exit(t_cmds **cmds) */
-/* { */
-/*   free_cmds(cmds); */
-/*   perror(""); */
-/*   exit (1); */
-/* } */
+int add_cmds(char **av, char **envp, t_cmd *cmd1, t_cmd *cmd2)
+{
+  //gerer l'erreur de malloc : on quite tout !
+  //differencier d'un path inexistant : on retourne NULL et on continue dans ce cas 
+  cmd1->binary = get_binary(av[2], envp);
+  cmd1->args = ft_split(av[2], ' ');
+  cmd2->binary = get_binary(av[3], envp);
+  cmd2->args = ft_split(av[3], ' ');
+  return (0); // gerer le return (1) ?
+}
 
 int from_file_to_pipe(char *file, int fd[2], t_cmd cmd, char **envp)
 {
@@ -158,22 +190,43 @@ int from_file_to_pipe(char *file, int fd[2], t_cmd cmd, char **envp)
 	infile = open(file, O_RDONLY);
 	if (infile == -1)
   {
-    perror("Open error");
-    //selon l'open error on fait pas la meme chose ?
-    //on fait pas d'exec ?
-	  return (1);
+    write(2, "pipex: ", 7);
+    write(2, file, ft_strlen(file));
+    write(2, ": ", 2);
+    perror("");
+    close (fd[1]);
+    free_cmd(cmd);
+    exit (1);
   }
 	dup2(fd[1], STDOUT_FILENO);
 	dup2(infile, STDIN_FILENO);
   close (fd[1]); // j'en ai plus besoin ?
+  close (infile);
+  ///proteger close 
+  if (!cmd.binary || access(cmd.binary, F_OK) != 0)
+  {
+    write(2, "pipex: ", 7);
+    write(2, "command not found: ", 19);
+    write(2, cmd.args[0], ft_strlen(cmd.args[0]));
+    write(2, "\n", 1);
+    free_cmd(cmd);
+    exit (126);
+  }
+  if (access(cmd.binary, X_OK) != 0)
+  {
+    write(2, "pipex: ", 7);
+    write(2, "permission denied: ", 19);
+    perror("");
+    free_cmd(cmd);
+    exit (127);
+  }
   if (execve(cmd.binary, cmd.args, envp) != 0)
   {
-    close (infile);
+    free_cmd(cmd);
     perror("execve error");
-	  return (1);
+    exit (1);
   }
-  close (infile);
-  return (0);
+  exit (0);
 }
 
 int from_pipe_to_file(char *file, int fd[2], t_cmd cmd, char **envp)
@@ -181,42 +234,47 @@ int from_pipe_to_file(char *file, int fd[2], t_cmd cmd, char **envp)
   int outfile;
 
   close (fd[1]);
+  //si il existe pas faut le creer !
+  //et si ya pas de permissions ?
 	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (outfile == -1)
   {
-    perror("Open error");
-    //selon l'open error on fait pas la meme chose ?
-    //on fait pas d'exec ?
-	  return (1);
+    write(2, "pipex: ", 7);
+    write(2, file, ft_strlen(file));
+    write(2, ": ", 2);
+    perror("");
+    close (fd[0]);
+    free_cmd(cmd);
+    exit (1);
   }
 	dup2(fd[0], STDIN_FILENO);
 	dup2(outfile, STDOUT_FILENO);
   close (fd[0]);
+  close (outfile);
+  if (!cmd.binary || access(cmd.binary, F_OK) != 0)
+  {
+    write(2, "pipex: ", 7);
+    write(2, "command not found: ", 19);
+    write(2, cmd.args[0], ft_strlen(cmd.args[0]));
+    write(2, "\n", 1);
+    free_cmd(cmd);
+    exit (126);
+  }
+  if (access(cmd.binary, X_OK) != 0)
+  {
+    write(2, "pipex: ", 7);
+    write(2, "permission denied: ", 19);
+    perror("");
+    free_cmd(cmd);
+    exit (127);
+  }
   if (execve(cmd.binary, cmd.args, envp) != 0)
   {
-    close (outfile);
+    free_cmd(cmd);
     perror("execve error");
-	  return (1);
+    exit (1);
   }
-  close (outfile);
-  return (0);
-}
-
-void add_cmds(char **av, char **envp, t_cmd cmd1, t_cmd cmd2)
-{
-  //gerer les erreurs !
-  cmd1.binary = get_binary(av[2], envp);
-  cmd1.args = ft_split(av[2], ' ');
-  cmd2.binary = get_binary(av[3], envp);
-  cmd2.args = ft_split(av[3], ' ');
-}
-
-void free_cmd(t_cmd cmd)
-{
-  if (cmd.binary)
-    free(cmd1.binary);
-  if (cmd.args)
-    free(cmd.args);
+  exit (0);
 }
 
 int main (int ac, char **av, char **envp)
@@ -227,27 +285,53 @@ int main (int ac, char **av, char **envp)
   t_cmd cmd1;
   t_cmd cmd2;
 
-  //message d'erreur pour les args ?
-  if (ac != 5 || !envp) //suffit pour gerer l'env ?
+  if (ac != 5 || !*envp)
     exit (1);
   if (pipe(fd) == -1)
   {
-    perror("pipe fct failed");
+    perror("Pipe fct failed");
     exit (1);
   }
   add_cmds(av, envp, &cmd1, &cmd2);
   pid = fork();
+  //securiser fork
   if (pid == 0)
   {
-    from_file_to_pipe(av[1], fd, cmd1, envp); //Si le child rencontre une erreur ?
-    free_cmd(cmd1);
-  }
-  else
-  {
-    waitpid(pid &status, 0);
-    from_pipe_to_file(av[4], fd, cmd2, envp); //Error managment 
     free_cmd(cmd2);
+    from_file_to_pipe(av[1], fd, cmd1, envp);
   }
-  return (0);
+  pid = fork();
+  if (pid == 0)
+  {
+    free_cmd(cmd1);
+    from_pipe_to_file(av[4], fd, cmd2, envp);
+  }
+  free_cmd(cmd1);
+  free_cmd(cmd2);
+  close (fd[1]);
+  close (fd[0]);
+  waitpid(pid, &status, 0);
 }
 
+///sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
+///infile cat | cat | ls outfile
+////bin/ls comme cmd
+///proteger is infile ou outfile est /dev/urandom
+///here_doc : limiter = EOF et pas EOFa
+///
+///
+
+  /* int i = 0; */
+  /* printf("cmd1.binary = %s\n", cmd1.binary); */
+  /* while (cmd1.args[i]) */
+  /* { */
+  /*   printf("cmd1.args = %s\n", cmd1.args[i]); */
+  /*   i++; */
+  /* } */
+  /* printf("cmd2.binary = %s\n", cmd2.binary); */
+  /* i = 0; */
+  /* while (cmd2.args[i]) */
+  /* { */
+  /*   printf("cmd2.args = %s\n", cmd2.args[i]); */
+  /*   i++; */
+  /* } */

@@ -13,4 +13,9 @@
 #ifndef PIPEX_H
 # define PIPEX_H
 
+typedef struct s_cmd {
+  char *binary;
+  char **args;
+} t_cmd;
+
 #endif
