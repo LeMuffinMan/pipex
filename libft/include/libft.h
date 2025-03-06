@@ -17,6 +17,7 @@
 # endif
 
 # include <bsd/string.h>
+# include <stdarg.h>
 
 typedef struct s_list
 {
