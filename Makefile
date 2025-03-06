@@ -100,7 +100,7 @@ all: $(NAME)
 $(NAME): $(OBJ) $(LIBFT_A) Makefile libft/Makefile libft/include/libft.h
 	$(CC) $(CFLAGS) $(OBJ) $(LIBFT_A) $(LIBFT_FLAGS) -o $(NAME)
 	@echo 
-	@echo '$(GREEN)compilation successful ✅ $(NAME)$(RESET)'
+	@echo "$(GREEN)compilation successful ✅ $(NAME)$(RESET)"
 	@echo 
 
 $(LIBFT_A): $(LIBFT_SRC_FILES) FORCE

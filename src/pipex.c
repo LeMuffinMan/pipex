@@ -31,7 +31,7 @@
 // on redirige la stdout de cmd1 vers stdin de cmd2
 // on verifie si file2 exists et est accessible, on le touch si il existe pas ?
 // on execute cmd2 avec en stdin la stdout de cmd1,
-	/* et on la stdout de cmd2 est redirigee vers file2 */
+/* et on la stdout de cmd2 est redirigee vers file2 */
 // on close tous les fd
 // on attend les children
 
@@ -88,7 +88,7 @@ char	*join_full_path(char *binary, char *cmd, char *path)
 	binary = malloc(sizeof(char) * ft_strlen(path) + ft_strlen(cmd) + 2);
 	if (!binary)
 		return (NULL);
-			// A gerer autrement pour differencier malloc error et path null
+	// A gerer autrement pour differencier malloc error et path null
 	i = 0;
 	while (path[i])
 	{
@@ -131,7 +131,7 @@ char	**get_paths(char **envp)
 	paths = NULL;
 	path_line = get_path_line(envp);
 	if (!*path_line) // si on vide le PATH ,
-		/* estce que le 6eme bite de la ligne PATH= est null ? */
+						/* estce que le 6eme bite de la ligne PATH= est null ? */
 	{
 		perror("path_line error");
 		return (NULL);
@@ -150,14 +150,14 @@ char	*get_binary(char *cmd, char **envp)
 	paths = get_paths(envp);
 	if (!paths)
 	{
-		perror("get paths error");
+		perror("get paths");
 		return (NULL);
 	}
 	args = ft_split(cmd, ' ');
 	if (!args)
 	{
 		free_array(paths);
-		perror("args error");
+		perror("args");
 		return (NULL);
 	}
 	binary = which_cmd(paths, args[0]);
@@ -166,139 +166,50 @@ char	*get_binary(char *cmd, char **envp)
 	return (binary);
 }
 
-/* void free_cmd(t_cmd cmd) */
-/* { */
-/*   if (cmd.binary) */
-/*     free(cmd.binary); */
-/*   if (cmd.args) */
-/*     free_array(cmd.args); */
-/*   cmd.binary = NULL; */
-/*   cmd.args = NULL; */
-/* } */
-
-/* int add_cmds(char **av, char **envp, t_cmd *cmd1, t_cmd *cmd2) */
-/* { */
-/*   //gerer l'erreur de malloc : on quite tout ! */
-/*  
-	//differencier d'un path inexistant : on retourne NULL et on continue dans ce cas  */
-/*   if (is_a_path(av[2])) */
-/*     cmd1->binary = av[2]; */
-/*   else */
-/*     cmd1->binary = get_binary(av[2], envp); */
-/*   cmd1->args = ft_split(av[2], ' '); */
-/*   if (is_a_path(av[2])) */
-/*     cmd2->binary = av[2]; */
-/*   else */
-/*     cmd2->binary = get_binary(av[3], envp); */
-/*   cmd2->args = ft_split(av[3], ' '); */
-/*   return (0); // gerer le return (1) ? */
-/* } */
-/**/
-/* void fct_error(t_cmd cmd) */
-/* { */
-/*   perror(""); */
-/*   free_cmd(cmd); */
-/*   exit(1); */
-/* } */
-/**/
-/* int open_error(char *file, int fd, t_cmd cmd) */
-/* { */
-/*   write(2, "pipex: ", 7); */
-/*   write(2, file, ft_strlen(file)); */
-/*   write(2, ": ", 2); */
-/*   perror(""); */
-/*   close (fd); */
-/*   free_cmd(cmd); */
-/*   exit (1); */
-/* } */
-/**/
-/* int dup_and_close(int fd_to_close, int fd_to_use, int file, char mode) */
-/* { */
-/*   //revoir les fonctions d'erreur pour tout free et tout close  */
-/*     if (close (fd_to_close) == -1) */
-/*       fct_error(cmd); */
-/*     if (mode == 'r')  */
-/* 		 file = open(file, O_RDONLY); */
-/* 		else if (mode == 'w') */
-/* 		 file = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
-/* 		if (infile == -1) */
-/* 		 open_error(file, fd_to_use, cmd); */
-/*     if (dup2(fd_to_use, STDOUT_FILENO) == -1) */
-/*       fct_error(cmd); */
-/* 		if (dup2(file, STDIN_FILENO) == -1) */
-/* 		 fct_error(cmd); */
-/*     if (close (fd_to_use) == -1) */
-/*       fct_error(cmd); */
-/*     if (close (infile) == -1) */
-/*       fct_error(cmd); */
-/* } */
-/**/
-/* int execute(t_cmd cmd) */
-/* { */
-/*   if (!cmd.binary || access(cmd.binary, F_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "command not found: ", 19); */
-/*     write(2, cmd.args[0], ft_strlen(cmd.args[0])); */
-/*     write(2, "\n", 1); */
-/*     free_cmd(cmd); */
-/*     exit (126); */
-/*   } */
-/*   if (access(cmd.binary, X_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "permission denied: ", 19); */
-/*     perror(""); */
-/*     free_cmd(cmd); */
-/*     exit (127); */
-/*   } */
-/*   if (execve(cmd.binary, cmd.args, envp) != 0) */
-/*   { */
-/*     free_cmd(cmd); */
-/*     perror("execve error"); */
-/*     exit (1); */
-/*   } */
-/* } */
-/**/
-/* //a renommer ? */
-/* int from_input_to_output(char *file, int fd[2], t_cmd cmd, char **envp,
-	int order) */
-/* { */
-/*   int infile; */
-/*   int outfile; */
-/*   //order = 0 : 1er pipe // order = 2 : pipe du milieu
-	// order = 3 : pipe de fin */
-/*   if (order == 0) */
-/*   { */
-/*     //free tous les nodes non necessaires */
-/*     dup_and_close(fd[0], fd[1], infile, 'r'); */
-/*     execute(cmd); */
-/*   } */
-/*   else if (order == 1) */
-/*   { */
-/*     //free tous les nodes non necessaires */
-/*     //bonus */
-/*   } */
-/*   else if (order == 2) */
-/*   { */
-/*     //free tous les nodes non necessaires */
-/*     dup_and_close(fd[1], fd[0], outfile, 'w'); */
-/*     execute(cmd); */
-/*   } */
-/* } */
-/**/
-/* int fork_error(int fd[2], t_cmd cmd1, t_cmd cmd2) */
-/* { */
-/*   free_cmd(cmd1); */
-/*   free_cmd(cmd2); */
-/*   close (fd[1]); */
-/*   close (fd[0]); */
-/*   exit(1); */
-/* } */
-
-int	is_a_path(char *s)
+int close_and_quit(int fd[2])
 {
-	int	i;
+	if (close(fd[0]) == -1)
+		perror("close");
+	if (close(fd[1]) == -1)
+		perror("close");
+	exit (1);
+}
+
+int execute(char *binary, char **args, char **envp)
+{
+	if (!binary || access(binary, F_OK) != 0)
+	{
+		//revoir ici
+		write(2, "pipex: ", 7);
+		write(2, "command not found: ", 19);
+		write(2, binary, ft_strlen(binary));
+		write(2, "\n", 1);
+		free_array(args);
+		free(binary);
+		exit(126);
+	}
+	if (access(binary, X_OK) != 0)
+	{
+		write(2, "pipex: ", 7);
+		write(2, "permission denied: ", 19);
+		perror("");
+		free_array(args);
+		free(binary);
+		exit(127);
+	}
+	if (execve(binary, args, envp) != 0)
+	{
+		free_array(args);
+		free(binary);
+		perror("execve error");
+		exit(1);
+	}
+	return (0);
+}
+
+int is_a_path(char *s)
+{
+	int i;
 
 	i = 0;
 	while (s[i])
@@ -310,130 +221,103 @@ int	is_a_path(char *s)
 	return (0);
 }
 
-int	add_first_node(char **av, char **envp, int fd[2], t_data **data)
+int pipe_as_output(char *file, int fd[2])
 {
-	t_data	*new_node;
+	int infile;
 
-	new_node = malloc(sizeof(t_data));
-	if (new_node == NULL)
-		return (1); // rien a free ? on exit ?
-	new_node->file = av[1];
-	new_node->fd_input = -1;
-	new_node->fd_output = fd[1]; // fd[1] for the first node
-	new_node->paths = get_paths(envp);
+	close(fd[0]);
+	infile = open(file, O_RDONLY);
+	dup2(infile, STDIN_FILENO);
+	dup2(fd[1], STDOUT_FILENO);
+	close(fd[1]);
+	return (0);
+}
+
+int pipe_as_input(char *file, int fd[2])
+{
+	int outfile;
+
+	close(fd[1]);
+	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	dup2(outfile, STDOUT_FILENO);
+	dup2(fd[0], STDIN_FILENO);
+	close(fd[0]);
+	return (0);
+}
+
+int from_file_to_pipe(char **av, char **envp, int fd[2])
+{
+	char *path;
+	char **args;
+
 	if (is_a_path(av[2]))
-		new_node->binary = av[2];
-	else
-		new_node->binary = get_binary(av[2], envp);
-	new_node->args = ft_split(av[2], ' ');
-	new_node->next = NULL;
-	*data = new_node;
+		path = av[2];
+	else 
+	{
+		path = get_binary(av[2], envp);
+		if (!path) //voir si ca gere tous les cas d'erreurs 
+		{
+			free(path);
+			close_and_quit(fd);
+		}
+
+	}
+	pipe_as_output(av[1], fd);
+	args = ft_split(av[2], ' ');
+	execute(path, args, envp);
 	return (0);
 }
 
-int	add_last_node(char **av, char **envp, int fd[2], t_data **data)
+int from_pipe_to_file(char **av, char **envp, int fd[2])
 {
-	t_data	*new_node;
-	t_data	*tmp;
+	char *path;
+	char **args;
 
-	new_node = malloc(sizeof(t_data));
-	if (new_node == NULL)
-		return (1); // faut free data !
-	tmp = *data;
-	while (tmp->next != NULL)
-		tmp = tmp->next;
-	tmp->next = new_node;
-	new_node->file = av[4];
-	new_node->fd_input = fd[0]; // fd[0] for the last node
-	new_node->fd_output = -1;
-	new_node->paths = get_paths(envp);
-	//si pas de path on exit et on free tout 
 	if (is_a_path(av[3]))
-		new_node->binary = av[3];
-	else
-		new_node->binary = get_binary(av[3], envp);
-	new_node->args = ft_split(av[3], ' ');
-	new_node->next = NULL;
+		path = av[3];
+	else 
+	{
+		path = get_binary(av[3], envp);
+		if (!path) //voir si ca gere tous les cas d'erreurs 
+		{
+			free(path);
+			close_and_quit(fd);
+		}
+	}
+	pipe_as_input(av[4], fd);
+	args = ft_split(av[3], ' ');
+	execute(path, args, envp);
 	return (0);
 }
 
-t_data	*add_data(char **av, char **envp, int fd[2])
+int main(int ac, char **av, char **envp)
 {
-	t_data *data;
-
-	data = NULL;
-	add_first_node(av, envp, fd, &data);
-	add_last_node(av, envp, fd, &data);
-	if (data == NULL)
-		return (NULL); // a gerer !
-	return (data);
-}
-int	init(char **av, char **envp, int fd[2], t_data **data)
-{
-	if (pipe(fd) == -1)
-	{
-		perror("pipe fct failed");
-		exit(1);
-	}
-	*data = add_data(av, envp, fd);
-	if (!*data)
-	{
-		perror("add_data failed");
-		exit(1);
-	}
-	// fork ici ?
-	return (0);
-}
-
-/* int exit_end(t_cmd cmd1, t_cmd cmd2, int fd[2]) */
-/* { */
-/*   free_cmd(cmd1); */
-/*   free_cmd(cmd2); */
-/*   close (fd[1]); */
-/*   close (fd[0]); */
-/*   exit (0); */
-/* } */
-
-int	main(int ac, char **av, char **envp)
-{
-	int		fd[2];
-	t_data	*data;
-
-  data = NULL;
-	/* int pid; */
+	int pid;
 	/* int status; */
+	int fd[2];
+
 	if (ac != 5 || !*envp)
 		exit(1);
-	init(av, envp, fd, &data);
-	int i = 0;
-	printf("cmd1->binary = %s\n", data->binary);
-	while (data->args[i])
+	if (pipe(fd) == -1)
 	{
-	  printf("cmd1->args = %s\n", data->args[i]);
-	  i++;
+		perror("pipe");
+		exit(1);
 	}
-	printf("cmd2->binary = %s\n", data->next->binary);
-	i = 0;
-	while (data->next->args[i])
-	{
-	  printf("cmd2->args = %s\n", data->next->args[i]);
-	  i++;
-	}
-	/* pid = fork(); */
-	/* if (pid == -1) */
-	/*   fork_error(fd, &data); */
-	/* if (pid == 0) */
-	/*   from_input_to_output(fd, &data, envp, 0); */
-	/* pid = fork(); */
-	/* if (pid == -1) */
-	/* { */
-	/*   waitpid(pid, &status, 0); */
-	/*   fork_error(fd, cmd1, cmd2); */
-	/* } */
-	/* if (pid == 0) */
-	/*   from_pipe_to_file(fd, &data, envp, 2); */
-	/* waitpid(pid, &status, 0); */
-	/* exit_end(data, fd); */
+	pid = fork();
+	if (pid == -1)
+		close_and_quit(fd);
+	if (pid == 0)
+		from_file_to_pipe(av, envp, fd);
+	pid = fork();
+	if (pid == -1)
+		close_and_quit(fd);
+	if (pid == 0)
+		from_pipe_to_file(av, envp, fd);
+	wait(NULL);
+	close(fd[0]);
+	close(fd[1]);
+	//proteger waitpid ?
+	exit (0);
 }
 
 /// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
@@ -444,101 +328,19 @@ int	main(int ac, char **av, char **envp)
 ///
 ///
 
-/* int from_file_to_pipe(char *file, int fd[2], t_cmd cmd, char **envp) */
+/* int i = 0; */
+/* printf("cmd1->binary = %s\n", data->binary); */
+/* while (data->args[i]) */
 /* { */
-/*   int infile; */
-/**/
-/*   if (close (fd[0]) == -1) */
-/*     fct_error(cmd); */
-/* 	infile = open(file, O_RDONLY); */
-/* 	if (infile == -1) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, file, ft_strlen(file)); */
-/*     write(2, ": ", 2); */
-/*     perror(""); */
-/*     close (fd[1]); */
-/*     free_cmd(cmd); */
-/*     exit (1); */
-/*   } */
-/*   if (dup2(fd[1], STDOUT_FILENO) == -1) */
-/*     fct_error(cmd); */
-/* 	if (dup2(infile, STDIN_FILENO) == -1) */
-/* 		fct_error(cmd); */
-/*   if (close (fd[1]) == -1) // j'en ai plus besoin ? */
-/*     fct_error(cmd); */
-/*   if (close (infile) == -1) */
-/*     fct_error(cmd); */
-/*   if (!cmd.binary || access(cmd.binary, F_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "command not found: ", 19); */
-/*     write(2, cmd.args[0], ft_strlen(cmd.args[0])); */
-/*     write(2, "\n", 1); */
-/*     free_cmd(cmd); */
-/*     exit (126); */
-/*   } */
-/*   if (access(cmd.binary, X_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "permission denied: ", 19); */
-/*     perror(""); */
-/*     free_cmd(cmd); */
-/*     exit (127); */
-/*   } */
-/*   if (execve(cmd.binary, cmd.args, envp) != 0) */
-/*   { */
-/*     free_cmd(cmd); */
-/*     perror("execve error"); */
-/*     exit (1); */
-/*   } */
-/*   exit (0); */
+/*   printf("cmd1->args = %s\n", data->args[i]); */
+/*   i++; */
 /* } */
-/**/
-/* int from_pipe_to_file(char *file, int fd[2], t_cmd cmd, char **envp) */
+/* printf("cmd2->binary = %s\n", data->next->binary); */
+/* i = 0; */
+/* while (data->next->args[i]) */
 /* { */
-/*   int outfile; */
-/**/
-/*   close (fd[1]); */
-/*   //si il existe pas faut le creer ! */
-/*   //et si ya pas de permissions ? */
-/* 	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
-/* 	if (outfile == -1) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, file, ft_strlen(file)); */
-/*     write(2, ": ", 2); */
-/*     perror(""); */
-/*     close (fd[0]); */
-/*     free_cmd(cmd); */
-/*     exit (1); */
-/*   } */
-/* 	dup2(fd[0], STDIN_FILENO); */
-/* 	dup2(outfile, STDOUT_FILENO); */
-/*   close (fd[0]); */
-/*   close (outfile); */
-/*   if (!cmd.binary || access(cmd.binary, F_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "command not found: ", 19); */
-/*     write(2, cmd.args[0], ft_strlen(cmd.args[0])); */
-/*     write(2, "\n", 1); */
-/*     free_cmd(cmd); */
-/*     exit (126); */
-/*   } */
-/*   if (access(cmd.binary, X_OK) != 0) */
-/*   { */
-/*     write(2, "pipex: ", 7); */
-/*     write(2, "permission denied: ", 19); */
-/*     perror(""); */
-/*     free_cmd(cmd); */
-/*     exit (127); */
-/*   } */
-/*   if (execve(cmd.binary, cmd.args, envp) != 0) */
-/*   { */
-/*     free_cmd(cmd); */
-/*     perror("execve error"); */
-/*     exit (1); */
-/*   } */
-/*   exit (0); */
+/*   printf("cmd2->args = %s\n", data->next->args[i]); */
+/*   i++; */
 /* } */
+
+
