@@ -174,6 +174,7 @@ int close_and_quit(int fd[2])
 	exit (1);
 }
 
+//une cmd2 invalide passe sans declencher d'erreur
 int execute(char *binary, char **args, char **envp)
 {
 	if (!binary || access(binary, F_OK) != 0)
@@ -201,9 +202,9 @@ int execute(char *binary, char **args, char **envp)
 		free_array(args);
 		free(binary);
 		perror("execve error");
-		exit(1);
+		exit(errno);
 	}
-	return (0);
+	exit (errno);
 }
 
 int is_a_path(char *s)
@@ -220,19 +221,17 @@ int is_a_path(char *s)
 	return (0);
 }
 
-int	open_error(int fd, char *file, char *path, char **args)
+int	open_error(int fd, char *file)
 {
 	write(2, "pipex: ", 7);
 	write(2, file, ft_strlen(file));
 	write(2, ": ", 2);
 	perror("");
 	close(fd);
-	free(path);
-	free_array(args);
-	exit(1);
+	exit(errno);
 }
 
-int redirect_fd(t_data *data, int fd[2], char *path, char **args)
+int redirect_fd(t_data *data, int fd[2])
 {
 	int file;
 
@@ -241,7 +240,7 @@ int redirect_fd(t_data *data, int fd[2], char *path, char **args)
 		close(fd[0]);
 		file = open(data->infile, O_RDONLY);
 		if (file == -1)
-			open_error(fd[1], data->infile, path, args);
+			open_error(fd[1], data->infile);
 		dup2(file, STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
@@ -251,7 +250,7 @@ int redirect_fd(t_data *data, int fd[2], char *path, char **args)
 		close(fd[1]);
 		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (file == -1)
-			open_error(fd[0], data->outfile, path, args);
+			open_error(fd[0], data->outfile);
 		dup2(file, STDOUT_FILENO);
 		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
@@ -259,6 +258,30 @@ int redirect_fd(t_data *data, int fd[2], char *path, char **args)
 	return (0);
 }
 
+/* int redirect_fd(t_data data, int fd_to_close, int fd_to_use, char *file) */
+/* { */
+/* 	int file_fd; */
+/**/
+/* 	close(fd_to_close); */
+/* 	if (pos == 0) */
+/* 	{ */
+/* 		file_fd = open(file, O_RDONLY); */
+/* 		if (file_fd == -1) */
+/* 			open_error(fd_to_use, file); */
+/* 		dup2(file, STDIN_FILENO); */
+/* 		dup2(fd[1], STDOUT_FILENO); */
+/* 	} */
+/* 	else */
+/* 	{ */
+/* 		file_fd = open (file, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
+/* 		if (file_fd == -1) */
+/* 			open_error(fd_to_use, file); */
+/* 		dup2(file, STDOUT_FILENO); */
+/* 		dup2(fd[0], STDIN_FILENO); */
+/* 	} */
+/* 	close(fd_to_use); */
+/* 	return (0); */
+/* } */
 
 int parse_redirect_execute(t_data *data, int fd[2])
 {
@@ -266,9 +289,9 @@ int parse_redirect_execute(t_data *data, int fd[2])
 	char **args;
 	char *cmd;
 
-	if (data->pos == 0 && data->cmd1 != NULL)
+	if (data->pos == 0)
 		cmd = data->cmd1;
-	else if (data->pos == 1 && data->cmd2 != NULL)
+	else
 		cmd = data->cmd2;
 	args = ft_split(cmd, ' ');
 	if (is_a_path(args[0]))
@@ -279,11 +302,10 @@ int parse_redirect_execute(t_data *data, int fd[2])
 		if (!path) //voir si ca gere tous les cas d'erreurs 
 		{
 			free(path);
-			free_array(args);
 			close_and_quit(fd);
 		}
 	}
-	redirect_fd(data, fd, path, args);
+	redirect_fd(data, fd);
 	execute(path, args, data->envp);
 	return (0);
 }
@@ -291,7 +313,7 @@ int parse_redirect_execute(t_data *data, int fd[2])
 int init(t_data *data, int ac, char **av, int fd[2])
 {
 	if (ac != 5 || !*(data)->envp) //voir si ca marche
-		exit(1);
+		exit(errno);
 	data->infile = av[1];
 	data->cmd1 = av[2];
 	data->cmd2 = av[3];
@@ -299,49 +321,34 @@ int init(t_data *data, int ac, char **av, int fd[2])
 	if (pipe(fd) == -1)
 	{
 		perror("pipe");
-		exit(1);
+		exit(errno);
 	}
 	data->pos = 0;
 	return (0);
 }
 
-int wait_children(int fd[2], pid_t pid1, pid_t pid2)
+int close_wait_exit(int fd[2], int pid1, int pid2)
 {
 	int status;
-	int exit_code;
 
-	exit_code = EXIT_SUCCESS;
-	if (waitpid(pid1, &status, 0) == -1)
+	if (waitpid(pid1, &status, 0) == -1 || waitpid(pid2, &status, 0) == -1)
 	{
 		close(fd[0]);
 		close(fd[1]);
 		exit (errno);
 	}
-	if (waitpid(pid2, &status, 0) == -1)
-	{
-		close(fd[0]);
-		close(fd[1]);
-		exit (errno);
-	}
-  if (WIFEXITED(status))
-      exit_code = WEXITSTATUS(status);
-  else if (WIFSIGNALED(status))
-      exit_code = 128 + WTERMSIG(status);
-  if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-      exit_code = WEXITSTATUS(status);
-  else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
-      exit_code = 128 + WTERMSIG(status);
-  #include <stdio.h>
-  printf("exit_code = %d\n", exit_code);
-  return (exit_code);
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	else if (WIFSIGNALED(status))
+		return (128 + WTERMSIG(status));
+	return(EXIT_SUCCESS);
 }
-
 
 int main(int ac, char **av, char **envp)
 {
-	pid_t pid1;
-	pid_t pid2;
-	/* int status; */
+	//une struct pour pid qui vient de sys wait ?
+	int pid1;
+	int pid2;
 	int fd[2];
 	t_data data;
 
@@ -358,26 +365,20 @@ int main(int ac, char **av, char **envp)
 		close_and_quit(fd);
 	if (pid2 == 0)
 		parse_redirect_execute(&data, fd);
-	/* wait(NULL); // a la place de wait pid ? */
-	close(fd[0]);
-	close(fd[1]);
-	/* close(fd[0]); */
-	/* close(fd[1]); */
+	close_wait_exit(fd, pid1, pid2);
 	//proteger waitpid ?
-	exit (wait_children(fd, pid1, pid2));
+	exit (errno);
 }
 
 
-// OUT EXIT 
-//#18: "infiles/basic.txt" "cat -e" "nonexistingcommand" "outfiles/outfile"
-//LEAKS 
-//#24: "infiles/basic.txt" "" "cat -e" "outfiles/outfile"
-//FATAL_ERROR 
-//#25: "infiles/basic.txt" "cat -e" "" "outfiles/outfile"
-//
+//tests :
+// incorrect cmd2 ko
 // si on supprime que la ligne PATH ?
+// sans env
 //
 //tout proteger
+//
+//ranger
 
 
 /// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )

@@ -16,12 +16,18 @@
 typedef struct s_data
 {
 	char			*infile;
-	char 			*cmd1;
-	char 			*cmd2;
+	char			*cmd1;
+	char			*cmd2;
 	char			*outfile;
-	char **envp;
-	int 			pos;
+	char			**envp;
+	int				pos;
 	struct s_data	*next;
 }					t_data;
+
+typedef struct s_pid
+{
+	int				pid;
+	int				status;
+}					t_pid;
 
 #endif
