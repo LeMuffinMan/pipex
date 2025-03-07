@@ -230,16 +230,16 @@ int	open_error(int fd, char *file)
 	exit(1);
 }
 
-int redirect_fd(t_data data, int fd[2])
+int redirect_fd(t_data *data, int fd[2])
 {
 	int file;
 
-	if (data.pos == 0)
+	if (data->pos == 0)
 	{
 		close(fd[0]);
-		file = open(data.infile, O_RDONLY);
+		file = open(data->infile, O_RDONLY);
 		if (file == -1)
-			open_error(fd[1], data.infile);
+			open_error(fd[1], data->infile);
 		dup2(file, STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
@@ -247,9 +247,9 @@ int redirect_fd(t_data data, int fd[2])
 	else
 	{
 		close(fd[1]);
-		file = open(data.outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (file == -1)
-			open_error(fd[0], data.outfile);
+			open_error(fd[0], data->outfile);
 		dup2(file, STDOUT_FILENO);
 		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
@@ -257,22 +257,47 @@ int redirect_fd(t_data data, int fd[2])
 	return (0);
 }
 
-int parse_redirect_execute(t_data data, int fd[2])
+/* int redirect_fd(t_data data, int fd_to_close, int fd_to_use, char *file) */
+/* { */
+/* 	int file_fd; */
+/**/
+/* 	close(fd_to_close); */
+/* 	if (pos == 0) */
+/* 	{ */
+/* 		file_fd = open(file, O_RDONLY); */
+/* 		if (file_fd == -1) */
+/* 			open_error(fd_to_use, file); */
+/* 		dup2(file, STDIN_FILENO); */
+/* 		dup2(fd[1], STDOUT_FILENO); */
+/* 	} */
+/* 	else */
+/* 	{ */
+/* 		file_fd = open (file, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
+/* 		if (file_fd == -1) */
+/* 			open_error(fd_to_use, file); */
+/* 		dup2(file, STDOUT_FILENO); */
+/* 		dup2(fd[0], STDIN_FILENO); */
+/* 	} */
+/* 	close(fd_to_use); */
+/* 	return (0); */
+/* } */
+
+int parse_redirect_execute(t_data *data, int fd[2])
 {
 	char *path;
 	char **args;
 	char *cmd;
 
-	if (data.pos == 0)
-		cmd = data.cmd1;
+	if (data->pos == 0)
+		cmd = data->cmd1;
 	else
-		cmd = data.cmd2;
+		cmd = data->cmd2;
 	args = ft_split(cmd, ' ');
 	if (is_a_path(args[0]))
 		path = args[0];
 	else 
 	{
-		path = get_binary(args[0], data.envp);
+		path = get_binary(args[0], data->envp);
 		if (!path) //voir si ca gere tous les cas d'erreurs 
 		{
 			free(path);
@@ -280,24 +305,24 @@ int parse_redirect_execute(t_data data, int fd[2])
 		}
 	}
 	redirect_fd(data, fd);
-	execute(path, args, data.envp);
+	execute(path, args, data->envp);
 	return (0);
 }
 
-int init(t_data data, int ac, char **av, int fd[2])
+int init(t_data *data, int ac, char **av, int fd[2])
 {
-	if (ac != 5 || !*(data).envp) //voir si ca marche
+	if (ac != 5 || !*(data)->envp) //voir si ca marche
 		exit(1);
-	data.infile = av[1];
-	data.cmd1 = av[2];
-	data.cmd2 = av[3];
-	data.outfile = av[4];
+	data->infile = av[1];
+	data->cmd1 = av[2];
+	data->cmd2 = av[3];
+	data->outfile = av[4];
 	if (pipe(fd) == -1)
 	{
 		perror("pipe");
 		exit(1);
 	}
-	data.pos = 0;
+	data->pos = 0;
 	return (0);
 }
 
@@ -309,18 +334,18 @@ int main(int ac, char **av, char **envp)
 	t_data data;
 
 	data.envp = envp;
-	init(data, ac, av, fd);
+	init(&data, ac, av, fd);
 	pid = fork();
 	if (pid == -1)
 		close_and_quit(fd);
 	if (pid == 0)
-		parse_redirect_execute(data, fd);
+		parse_redirect_execute(&data, fd);
 	data.pos = 1;
 	pid = fork();
 	if (pid == -1)
 		close_and_quit(fd);
 	if (pid == 0)
-		parse_redirect_execute(data, fd);
+		parse_redirect_execute(&data, fd);
 	wait(NULL); // a la place de wait pid ?
 	close(fd[0]);
 	close(fd[1]);
