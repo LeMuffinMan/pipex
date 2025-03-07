@@ -218,7 +218,17 @@ int is_a_path(char *s)
 		i++;
 	}
 	return (0);
+}
 
+int	open_error(int fd, char *file)
+{
+	write(2, "pipex: ", 7);
+	write(2, file, ft_strlen(file));
+	write(2, ": ", 2);
+	perror("");
+	close(fd);
+	exit(1);
+}
 
 int redirect_fd(t_data data, int fd[2])
 {
@@ -228,6 +238,8 @@ int redirect_fd(t_data data, int fd[2])
 	{
 		close(fd[0]);
 		file = open(data.infile, O_RDONLY);
+		if (file == -1)
+			open_error(fd[1], data.infile);
 		dup2(file, STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
@@ -236,6 +248,8 @@ int redirect_fd(t_data data, int fd[2])
 	{
 		close(fd[1]);
 		file = open(data.outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (file == -1)
+			open_error(fd[0], data.outfile);
 		dup2(file, STDOUT_FILENO);
 		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
