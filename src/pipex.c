@@ -69,7 +69,7 @@ char	*get_path_line(char **envp)
 	path_line = NULL;
 	while (envp[i])
 	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
+		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5) //voir pour le cas ou le PATH est vide
 		{
 			path_line = envp[i] + 5;
 			break ;
@@ -113,7 +113,6 @@ char	*which_cmd(char **paths, char *cmd)
 	while (paths[i])
 	{
 		binary = join_full_path(binary, cmd, paths[i]);
-		/* printf("binary = %s\n", binary); */
 		if (access(binary, X_OK) == 0)
 			return (binary);
 		free(binary);
@@ -219,74 +218,72 @@ int is_a_path(char *s)
 		i++;
 	}
 	return (0);
-}
 
-int pipe_as_output(char *file, int fd[2])
+
+int redirect_fd(t_data data, int fd[2])
 {
-	int infile;
+	int file;
 
-	close(fd[0]);
-	infile = open(file, O_RDONLY);
-	dup2(infile, STDIN_FILENO);
-	dup2(fd[1], STDOUT_FILENO);
-	close(fd[1]);
-	return (0);
-}
-
-int pipe_as_input(char *file, int fd[2])
-{
-	int outfile;
-
-	close(fd[1]);
-	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	dup2(outfile, STDOUT_FILENO);
-	dup2(fd[0], STDIN_FILENO);
-	close(fd[0]);
-	return (0);
-}
-
-int from_file_to_pipe(char **av, char **envp, int fd[2])
-{
-	char *path;
-	char **args;
-
-	if (is_a_path(av[2]))
-		path = av[2];
-	else 
+	if (data.pos == 0)
 	{
-		path = get_binary(av[2], envp);
-		if (!path) //voir si ca gere tous les cas d'erreurs 
-		{
-			free(path);
-			close_and_quit(fd);
-		}
-
+		close(fd[0]);
+		file = open(data.infile, O_RDONLY);
+		dup2(file, STDIN_FILENO);
+		dup2(fd[1], STDOUT_FILENO);
+		close(fd[1]);
 	}
-	pipe_as_output(av[1], fd);
-	args = ft_split(av[2], ' ');
-	execute(path, args, envp);
+	else
+	{
+		close(fd[1]);
+		file = open(data.outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		dup2(file, STDOUT_FILENO);
+		dup2(fd[0], STDIN_FILENO);
+		close(fd[0]);
+	}
 	return (0);
 }
 
-int from_pipe_to_file(char **av, char **envp, int fd[2])
+int parse_redirect_execute(t_data data, int fd[2])
 {
 	char *path;
 	char **args;
+	char *cmd;
 
-	if (is_a_path(av[3]))
-		path = av[3];
+	if (data.pos == 0)
+		cmd = data.cmd1;
+	else
+		cmd = data.cmd2;
+	args = ft_split(cmd, ' ');
+	if (is_a_path(args[0]))
+		path = args[0];
 	else 
 	{
-		path = get_binary(av[3], envp);
+		path = get_binary(args[0], data.envp);
 		if (!path) //voir si ca gere tous les cas d'erreurs 
 		{
 			free(path);
 			close_and_quit(fd);
 		}
 	}
-	pipe_as_input(av[4], fd);
-	args = ft_split(av[3], ' ');
-	execute(path, args, envp);
+	redirect_fd(data, fd);
+	execute(path, args, data.envp);
+	return (0);
+}
+
+int init(t_data data, int ac, char **av, int fd[2])
+{
+	if (ac != 5 || !*(data).envp) //voir si ca marche
+		exit(1);
+	data.infile = av[1];
+	data.cmd1 = av[2];
+	data.cmd2 = av[3];
+	data.outfile = av[4];
+	if (pipe(fd) == -1)
+	{
+		perror("pipe");
+		exit(1);
+	}
+	data.pos = 0;
 	return (0);
 }
 
@@ -295,30 +292,36 @@ int main(int ac, char **av, char **envp)
 	int pid;
 	/* int status; */
 	int fd[2];
+	t_data data;
 
-	if (ac != 5 || !*envp)
-		exit(1);
-	if (pipe(fd) == -1)
-	{
-		perror("pipe");
-		exit(1);
-	}
+	data.envp = envp;
+	init(data, ac, av, fd);
 	pid = fork();
 	if (pid == -1)
 		close_and_quit(fd);
 	if (pid == 0)
-		from_file_to_pipe(av, envp, fd);
+		parse_redirect_execute(data, fd);
+	data.pos = 1;
 	pid = fork();
 	if (pid == -1)
 		close_and_quit(fd);
 	if (pid == 0)
-		from_pipe_to_file(av, envp, fd);
-	wait(NULL);
+		parse_redirect_execute(data, fd);
+	wait(NULL); // a la place de wait pid ?
 	close(fd[0]);
 	close(fd[1]);
 	//proteger waitpid ?
 	exit (0);
 }
+
+//file no perm / not existing ko
+// path de cmd ko
+// args sur une cmd ko
+// incorrect cmd2 ko
+// si on supprime que la ligne PATH ?
+//
+//tout proteger
+
 
 /// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
 /// infile cat | cat | ls outfile

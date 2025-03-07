@@ -15,13 +15,12 @@
 
 typedef struct s_data
 {
-	char			*file;
-	int pipe_as_output; // pour dup & close : -1 si stdin
-	int pipe_as_input;  // pour dup & close : -1 si stdin
-	char **paths;       // extract paths : si no paths : exit
-	char *binary;       // le chemin du binary
-	char **args;        // la commande et ses args
-	int				order;
+	char			*infile;
+	char 			*cmd1;
+	char 			*cmd2;
+	char			*outfile;
+	char **envp;
+	int 			pos;
 	struct s_data	*next;
 }					t_data;
 
