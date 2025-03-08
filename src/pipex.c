@@ -69,14 +69,13 @@ char	*get_path_line(char **envp)
 	path_line = NULL;
 	while (envp[i])
 	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5) //voir pour le cas ou le PATH est vide
+		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5)
 		{
 			path_line = envp[i] + 5;
 			break ;
 		}
 		i++;
 	}
-	// retourne null si pas trouve ?
 	return (path_line);
 }
 
@@ -88,7 +87,6 @@ char	*join_full_path(char *binary, char *cmd, char *path)
 	binary = malloc(sizeof(char) * ft_strlen(path) + ft_strlen(cmd) + 2);
 	if (!binary)
 		return (NULL);
-	// A gerer autrement pour differencier malloc error et path null
 	i = 0;
 	while (path[i])
 	{
@@ -129,13 +127,11 @@ char	**get_paths(char **envp)
 
 	paths = NULL;
 	path_line = get_path_line(envp);
-	if (!*path_line) // si on vide le PATH ,
-						/* estce que le 6eme bite de la ligne PATH= est null ? */
+	if (!*path_line)
 	{
 		perror("path_line error");
 		return (NULL);
 	}
-	/* //bien renvoyer null si ca merde */
 	paths = ft_split(path_line, ':');
 	return (paths);
 }
@@ -165,50 +161,64 @@ char	*get_binary(char *cmd, char **envp)
 	return (binary);
 }
 
-int close_and_quit(int fd[2])
+int	close_and_quit(int fd[2], int error_code)
 {
 	if (close(fd[0]) == -1)
-		perror("close");
+		exit(errno);
 	if (close(fd[1]) == -1)
-		perror("close");
-	exit (1);
+		exit(errno);
+	exit(error_code);
 }
 
-int execute(char *binary, char **args, char **envp)
+//revoir comment recuperer les erreurs de close / le 127 : je close un fd deja ferme et lexit code est 22 avec errno
+int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary)
+{
+	write(2, "pipex: ", 7);
+	write(2, "command not found: ", 19);
+	if (binary)
+		write(2, binary, ft_strlen(binary));
+	write(2, "\n", 1);
+	if (binary)
+		free(binary);
+	if (path)
+		free(path);
+	free_array(args);
+	if (close(fd[0]) == -1)
+		exit(127);
+	if (close(fd[1]) == -1)
+		exit(127);
+	exit(127);
+}
+
+int	error_permission_denied(char **args, char *binary)
+{
+	write(2, "pipex: ", 7);
+	write(2, "permission denied: ", 19);
+	perror("");
+	free_array(args);
+	free(binary);
+	exit(126);
+}
+
+int	execute(char *binary, char **args, char **envp)
 {
 	if (!binary || access(binary, F_OK) != 0)
-	{
-		//revoir ici
-		write(2, "pipex: ", 7);
-		write(2, "command not found: ", 19);
-		write(2, binary, ft_strlen(binary));
-		write(2, "\n", 1);
-		free_array(args);
-		free(binary);
-		exit(127);
-	}
+		error_cmd_not_found(NULL, args, NULL, NULL);
 	if (access(binary, X_OK) != 0)
-	{
-		write(2, "pipex: ", 7);
-		write(2, "permission denied: ", 19);
-		perror("");
-		free_array(args);
-		free(binary);
-		exit(126);
-	}
+		error_permission_denied(args, binary);
 	if (execve(binary, args, envp) != 0)
 	{
 		free_array(args);
 		free(binary);
 		perror("execve error");
-		exit(1);
+		exit(errno);
 	}
 	return (0);
 }
 
-int is_a_path(char *s)
+int	is_a_path(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (s[i])
@@ -226,15 +236,26 @@ int	open_error(int fd, char *file, char *path, char **args)
 	write(2, file, ft_strlen(file));
 	write(2, ": ", 2);
 	perror("");
-	close(fd);
 	free(path);
 	free_array(args);
+	close(fd);
 	exit(1);
 }
 
-int redirect_fd(t_data *data, int fd[2], char *path, char **args)
+int	dup_and_close(int fd_out, int fd_in, int fd_to_close)
 {
-	int file;
+	if (dup2(fd_out, STDOUT_FILENO) == -1)
+		exit(errno);
+	if (dup2(fd_in, STDIN_FILENO) == -1)
+		exit(errno);
+	if (close(fd_to_close) == -1)
+		exit(errno);
+	return (0);
+}
+
+int	redirect_fd(t_data *data, int fd[2], char *path, char **args)
+{
+	int	file;
 
 	if (data->pos == 0)
 	{
@@ -242,9 +263,7 @@ int redirect_fd(t_data *data, int fd[2], char *path, char **args)
 		file = open(data->infile, O_RDONLY);
 		if (file == -1)
 			open_error(fd[1], data->infile, path, args);
-		dup2(file, STDIN_FILENO);
-		dup2(fd[1], STDOUT_FILENO);
-		close(fd[1]);
+		dup_and_close(fd[1], file, fd[1]);
 	}
 	else
 	{
@@ -252,19 +271,16 @@ int redirect_fd(t_data *data, int fd[2], char *path, char **args)
 		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (file == -1)
 			open_error(fd[0], data->outfile, path, args);
-		dup2(file, STDOUT_FILENO);
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
+		dup_and_close(file, fd[0], fd[0]);
 	}
 	return (0);
 }
 
-
-int parse_redirect_execute(t_data *data, int fd[2])
+int	parse_redirect_execute(t_data *data, int fd[2])
 {
-	char *path;
-	char **args;
-	char *cmd;
+	char	*path;
+	char	**args;
+	char	*cmd;
 
 	path = NULL;
 	if (data->pos == 0 && data->cmd1 != NULL)
@@ -274,41 +290,23 @@ int parse_redirect_execute(t_data *data, int fd[2])
 	args = ft_split(cmd, ' ');
 	redirect_fd(data, fd, path, args);
 	if (!*args)
-	{
-		write(2, "pipex: ", 7);
-		write(2, "command not found: ", 19);
-		write(2, "\n", 1);
-		close(fd[0]);
-		close(fd[1]);
-		free_array(args);
-		exit(127);
-	}
+		error_cmd_not_found(fd, args, NULL, NULL);
 	if (is_a_path(args[0]))
 		path = args[0];
-	else 
+	else
 	{
 		path = get_binary(args[0], data->envp);
-		if (!path) //voir si ca gere tous les cas d'erreurs 
-		{
-			close(fd[0]);
-			close(fd[1]);
-			write(2, "pipex: ", 7);
-			write(2, "command not found: ", 19);
-			write(2, args[0], ft_strlen(args[0]));
-			write(2, "\n", 1);
-			free(path);
-			free_array(args);
-			exit(127);
-		}
+		if (!path)
+			error_cmd_not_found(fd, args, NULL, NULL);
 	}
 	execute(path, args, data->envp);
 	return (0);
 }
 
-int init(t_data *data, int ac, char **av, int fd[2])
+int	init(t_data *data, int ac, char **av, int fd[2])
 {
-	if (ac != 5 || !*(data)->envp) //voir si ca marche
-		exit(1);
+	if (ac != 5 || !*(data)->envp)
+		exit(errno);
 	data->infile = av[1];
 	data->cmd1 = av[2];
 	data->cmd2 = av[3];
@@ -316,84 +314,65 @@ int init(t_data *data, int ac, char **av, int fd[2])
 	if (pipe(fd) == -1)
 	{
 		perror("pipe");
-		exit(1);
+		exit(errno);
 	}
 	data->pos = 0;
 	return (0);
 }
 
-int wait_children(int fd[2], pid_t pid1, pid_t pid2)
+int	wait_children(int fd[2], pid_t pid1, pid_t pid2)
 {
-	int status;
-	int exit_code;
+	int	status;
+	int	exit_code;
 
 	exit_code = EXIT_SUCCESS;
 	if (waitpid(pid1, &status, 0) == -1)
-	{
-		close(fd[0]);
-		close(fd[1]);
-		exit (errno);
-	}
+		close_and_quit(fd, errno);
 	if (waitpid(pid2, &status, 0) == -1)
-	{
-		close(fd[0]);
-		close(fd[1]);
-		exit (errno);
-	}
-  if (WIFEXITED(status))
-      exit_code = WEXITSTATUS(status);
-  else if (WIFSIGNALED(status))
-      exit_code = 128 + WTERMSIG(status);
-  if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-      exit_code = WEXITSTATUS(status);
-  else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
-      exit_code = 128 + WTERMSIG(status);
-  return (exit_code);
+		close_and_quit(fd, errno);
+	if (WIFEXITED(status))
+		exit_code = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		exit_code = 128 + WTERMSIG(status);
+	if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
+		exit_code = WEXITSTATUS(status);
+	else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
+		exit_code = 128 + WTERMSIG(status);
+	return (exit_code);
 }
 
-
-int main(int ac, char **av, char **envp)
+int	main(int ac, char **av, char **envp)
 {
-	pid_t pid1;
-	pid_t pid2;
-	/* int status; */
-	int fd[2];
-	t_data data;
+	pid_t	pid1;
+	pid_t	pid2;
+	int		fd[2];
+	t_data	data;
 
 	data.envp = envp;
 	init(&data, ac, av, fd);
 	pid1 = fork();
 	if (pid1 == -1)
-		close_and_quit(fd);
+		close_and_quit(fd, errno);
 	if (pid1 == 0)
 		parse_redirect_execute(&data, fd);
 	data.pos = 1;
 	pid2 = fork();
 	if (pid2 == -1)
-		close_and_quit(fd);
+		close_and_quit(fd, errno);
 	if (pid2 == 0)
 		parse_redirect_execute(&data, fd);
-	/* wait(NULL); // a la place de wait pid ? */
-	close(fd[0]);
-	close(fd[1]);
-	/* close(fd[0]); */
-	/* close(fd[1]); */
-	//proteger waitpid ?
-	exit (wait_children(fd, pid1, pid2));
+	if (close(fd[0]) == -1)
+		exit(errno);
+	if (close(fd[1]) == -1)
+		exit(errno);
+	exit(wait_children(fd, pid1, pid2));
 }
 
-
-// OUT EXIT 
-//#18: "infiles/basic.txt" "cat -e" "nonexistingcommand" "outfiles/outfile"
-//LEAKS 
-//#24: "infiles/basic.txt" "" "cat -e" "outfiles/outfile"
-//FATAL_ERROR 
-//#25: "infiles/basic.txt" "cat -e" "" "outfiles/outfile"
-//
 // si on supprime que la ligne PATH ?
+// env -i / unset PATH ?
 //
-//tout proteger
-
+// tout proteger
+// 	- verifier si on free tout en sortant
 
 /// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
 /// infile cat | cat | ls outfile
@@ -417,5 +396,3 @@ int main(int ac, char **av, char **envp)
 /*   printf("cmd2->args = %s\n", data->next->args[i]); */
 /*   i++; */
 /* } */
-
-
