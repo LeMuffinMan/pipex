@@ -185,7 +185,7 @@ int execute(char *binary, char **args, char **envp)
 		write(2, "\n", 1);
 		free_array(args);
 		free(binary);
-		exit(126);
+		exit(127);
 	}
 	if (access(binary, X_OK) != 0)
 	{
@@ -194,7 +194,7 @@ int execute(char *binary, char **args, char **envp)
 		perror("");
 		free_array(args);
 		free(binary);
-		exit(127);
+		exit(126);
 	}
 	if (execve(binary, args, envp) != 0)
 	{
@@ -266,11 +266,23 @@ int parse_redirect_execute(t_data *data, int fd[2])
 	char **args;
 	char *cmd;
 
+	path = NULL;
 	if (data->pos == 0 && data->cmd1 != NULL)
 		cmd = data->cmd1;
 	else if (data->pos == 1 && data->cmd2 != NULL)
 		cmd = data->cmd2;
 	args = ft_split(cmd, ' ');
+	redirect_fd(data, fd, path, args);
+	if (!*args)
+	{
+		write(2, "pipex: ", 7);
+		write(2, "command not found: ", 19);
+		write(2, "\n", 1);
+		close(fd[0]);
+		close(fd[1]);
+		free_array(args);
+		exit(127);
+	}
 	if (is_a_path(args[0]))
 		path = args[0];
 	else 
@@ -278,12 +290,17 @@ int parse_redirect_execute(t_data *data, int fd[2])
 		path = get_binary(args[0], data->envp);
 		if (!path) //voir si ca gere tous les cas d'erreurs 
 		{
+			close(fd[0]);
+			close(fd[1]);
+			write(2, "pipex: ", 7);
+			write(2, "command not found: ", 19);
+			write(2, args[0], ft_strlen(args[0]));
+			write(2, "\n", 1);
 			free(path);
 			free_array(args);
-			close_and_quit(fd);
+			exit(127);
 		}
 	}
-	redirect_fd(data, fd, path, args);
 	execute(path, args, data->envp);
 	return (0);
 }
@@ -331,8 +348,6 @@ int wait_children(int fd[2], pid_t pid1, pid_t pid2)
       exit_code = WEXITSTATUS(status);
   else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
       exit_code = 128 + WTERMSIG(status);
-  #include <stdio.h>
-  printf("exit_code = %d\n", exit_code);
   return (exit_code);
 }
 
