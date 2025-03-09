@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 static void	cleaner(char *buf, char *line, ssize_t nb)
 {

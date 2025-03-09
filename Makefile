@@ -6,7 +6,7 @@
 #    By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#              #
-#    Updated: 2025/03/01 16:29:17 by oelleaum         ###   ########lyon.fr    #
+#    Updated: 2025/03/08 15:24:43 by oelleaum         ###   ########lyon.fr    #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME=pipex
 #BONUS_NAME=pipex_bonus
 
 CC=cc
-CFLAGS=-Wall -Werror -Wextra -g3
+CFLAGS=-Wall -Werror -Wextra
 INC=-I include
 INC_LIBFT=-I libft/include
 #INC_BONUS=-I bonus/include
@@ -83,7 +83,12 @@ LIBFT_SRC_FILES = \
 LIBFT_OBJ_FILES = $(LIBFT_SRC_FILES:.c=.o)
 
 SRC_FILES = \
-    src/pipex.c
+    src/pipex.c \
+    src/utils.c \
+    src/errors.c \
+    src/exec.c \
+    src/init.c \
+    src/parsing.c
 
 OBJ_FILES = $(SRC_FILES:.c=.o)
 OBJ = $(addprefix $(OBJ_DIR)/,$(OBJ_FILES))
@@ -109,18 +114,6 @@ $(LIBFT_A): $(LIBFT_SRC_FILES) FORCE
 $(OBJ_DIR)/%.o: %.c Makefile ./include/pipex.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC) $(INC_LIBFT) -I . -c $< -o $@
-
-# bonus: $(BONUS_NAME)
-#
-# $(BONUS_OBJ_DIR)/%.o: bonus/src_bonus/%.c ./bonus/include_bonus/fractol_bonus.h
-# 	@mkdir -p $(dir $@)
-# 	$(CC) $(CFLAGS) $(INC_BONUS) -c $< -o $@
-#
-# $(BONUS_NAME): $(BONUS_OBJ_FILES) $(LIBFT_A) Makefile libft/Makefile ./bonus/include_bonus/fractol_bonus.h
-# 	$(CC) $(CFLAGS) $(BONUS_OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(BONUS_NAME)
-# 	@echo
-# 	@echo '$(GREEN)compilation successful ✅ $(BONUS_NAME)$(RESET)'
-# 	@echo
 
 clean:
 	rm -rf $(OBJ_DIR)/*

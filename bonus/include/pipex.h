@@ -17,12 +17,11 @@
 
 typedef struct s_data
 {
-	char			*infile;
-	char			*cmd1;
-	char			*cmd2;
-	char			*outfile;
+	int 			fd_in;
+	int 			fd_out;
 	char			**envp;
-	int				pos;
+	char 			**av;
+	pid_t			pid;
 	struct s_data	*next;
 }					t_data;
 

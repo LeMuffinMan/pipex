@@ -49,11 +49,10 @@
 
 int	main(int ac, char **av, char **envp)
 {
-	pid_t	pid1;
-	pid_t	pid2;
 	int		fd[2];
-	t_data	data;
+	t_data	*data;
 
+	data = NULL;
 	data.envp = envp;
 	init(&data, ac, av, fd);
 	pid1 = fork();

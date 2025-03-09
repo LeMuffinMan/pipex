@@ -1,40 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strjoin.c                                       :+:      :+:    :+:   */
+/*   init.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/13 08:12:20 by oelleaum          #+#    #+#             */
-/*   Updated: 2024/11/20 16:23:40 by oelleaum         ###   ########.fr       */
+/*   Created: 2025/03/08 15:18:38 by oelleaum          #+#    #+#             */
+/*   Updated: 2025/03/08 15:27:59 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include <errno.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include "pipex.h"
 #include <stdlib.h>
 
-char	*ft_strjoin(char const *s1, char const *s2)
+int	init(t_data *data, int ac, char **av, int fd[2])
 {
-	char	*joined;
-	int		i;
-	int		j;
-
-	i = 0;
-	joined = malloc (sizeof(char) * (ft_strlen(s1) + ft_strlen(s2) + 1));
-	if (joined == NULL)
-		return (NULL);
-	while (s1[i])
+	if (ac != 5 || !*(data)->envp)
+		exit(errno);
+	data->infile = av[1];
+	data->cmd1 = av[2];
+	data->cmd2 = av[3];
+	data->outfile = av[4];
+	if (pipe(fd) == -1)
 	{
-		joined[i] = s1[i];
-		i++;
+		perror("pipe");
+		exit(errno);
 	}
-	j = 0;
-	while (s2[j])
-	{
-		joined[i] = s2[j];
-		i++;
-		j++;
-	}
-	joined[i] = '\0';
-	return (joined);
+	data->pos = 0;
+	return (0);
 }

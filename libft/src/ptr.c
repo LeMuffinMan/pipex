@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <unistd.h>
 
 int	ptr_len(unsigned long long n)
 {

@@ -12,6 +12,7 @@
 
 #include "libft.h"
 #include <stdarg.h>
+#include <unistd.h>
 
 int	f_char(int c)
 {

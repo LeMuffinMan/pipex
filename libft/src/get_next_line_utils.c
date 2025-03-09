@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdlib.h>
 
 char	*ft_strchr_protected(const char *s, int c)
 {
@@ -25,12 +26,12 @@ char	*ft_strchr_protected(const char *s, int c)
 
 size_t	ft_strlengnl(const char *s)
 {
-	int	i;
+	size_t	i;
 
 	i = 0;
 	while (s && s[i])
 		i++;
-	return ((size_t)i);
+	return (i);
 }
 
 char	*ft_strjoin_protected(char *s1, char const *s2)
