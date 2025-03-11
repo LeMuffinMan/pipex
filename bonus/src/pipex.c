@@ -47,36 +47,91 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
+int parse_redirect_execute(char *av, int fd[2], char **envp, pid_t pid)
+{
+	char *path;
+	char **args;
+
+	path = NULL;
+	args = ft_split(av, ' ');
+	if (!*args)
+		error_no_cmd();
+	if (is_a_path(args[0]))
+		path = args[0];
+	else
+	{
+		path = get_binary(args[0], envp);
+		if (!path)
+			error_no_cmd();
+	}
+	execute(path, args, envp);
+	return (0);
+}
+
 int	main(int ac, char **av, char **envp)
 {
 	int		fd[2];
-	t_data	*data;
+	pid_t pid;
+	int i;
 
-	data = NULL;
-	data.envp = envp;
-	init(&data, ac, av, fd);
-	pid1 = fork();
-	if (pid1 == -1)
-		close_and_quit(fd, errno);
-	if (pid1 == 0)
-		parse_redirect_execute(&data, fd);
-	data.pos = 1;
-	pid2 = fork();
-	if (pid2 == -1)
-		close_and_quit(fd, errno);
-	if (pid2 == 0)
-		parse_redirect_execute(&data, fd);
-	if (close(fd[0]) == -1)
-		exit(errno);
-	if (close(fd[1]) == -1)
-		exit(errno);
-	exit(wait_children(fd, pid1, pid2));
-}
-
+	i = 2;
+	while (av[i + 2])
+	{
+  	if (pipe(fd) == -1) {
+      	perror("pipe");
+      	exit(EXIT_FAILURE);
+  	}
+  	i++;
+  	pid = fork();
+  	if (pid == -1)
+  		close_and_quit(fd, errno); //revoir
+  	if (pid == 0)
+  	{
+  		if (i == 2)
+  		{
+  			fd[0] = open(av[1], O_RDONLY);
+  			if (fd[0] == -1)
+  				open_error(fd[0], av[1])
+  			//close ici ?
+  			if (dup2(fd[1], STDOUT_FILENO) == -1)
+  			 exit(errno); // a proteger mieux ?
+  		}
+  		else if (i == ac - 1)
+  		{
+  			fd[1] = open(av[ac - 1],  O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  			if (fd[1] == -1)
+  				open_error(fd[0], av[1])
+  			if (dup2(fd[0], STDIN_FILENO) == -1)
+  			 exit (errno);
+  		}
+  		else
+  		{
+				if (dup2(fd[1], STDOUT_FILENO) == -1)
+					exit(errno);
+				if (dup2(fd[0], STDIN_FILENO) == -1)
+					exit(errno);
+  		}
+  		parse_redirect_execute(av[i], fd, envp, pid);
+  	}
+  	else 
+  	{
+  		close (fd[1]);
+  		close (fd[0]);
+  	}
+  }
+	i = 2;
+	while (i < ac - 1)
+	{
+		wait(NULL);
+		i++
+	}
+	return (0);
+ }
+	
 // si on supprime que la ligne PATH ?
 // env -i / unset PATH ?
 //
-// tout proteger
+// tout proteger e
 // 	- verifier si on free tout en sortant
 
 /// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
