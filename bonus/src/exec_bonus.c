@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "libft.h"
-#include "pipex.h"
+#include "pipex_bonus.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -39,55 +39,55 @@ int	wait_children(int fd[2], pid_t pid1, pid_t pid2)
 	return (exit_code);
 }
 
-int	parse_redirect_execute(t_data *data, int fd[2])
-{
-	char	*path;
-	char	**args;
-	char	*cmd;
+/* int	parse_redirect_execute(t_data *data, int fd[2]) */
+/* { */
+/* 	char	*path; */
+/* 	char	**args; */
+/* 	char	*cmd; */
+/**/
+/* 	path = NULL; */
+/* 	if (data->pos == 0 && data->cmd1 != NULL) */
+/* 		cmd = data->cmd1; */
+/* 	else if (data->pos == 1 && data->cmd2 != NULL) */
+/* 		cmd = data->cmd2; */
+/* 	args = ft_split(cmd, ' '); */
+/* 	redirect_fd(data, fd, path, args); */
+/* 	if (!*args) */
+/* 		error_cmd_not_found(fd, args, NULL, NULL); */
+/* 	if (is_a_path(args[0])) */
+/* 		path = args[0]; */
+/* 	else */
+/* 	{ */
+/* 		path = get_binary(args[0], data->envp); */
+/* 		if (!path) */
+/* 			error_cmd_not_found(fd, args, NULL, NULL); */
+/* 	} */
+/* 	execute(path, args, data->envp); */
+/* 	return (0); */
+/* } */
 
-	path = NULL;
-	if (data->pos == 0 && data->cmd1 != NULL)
-		cmd = data->cmd1;
-	else if (data->pos == 1 && data->cmd2 != NULL)
-		cmd = data->cmd2;
-	args = ft_split(cmd, ' ');
-	redirect_fd(data, fd, path, args);
-	if (!*args)
-		error_cmd_not_found(fd, args, NULL, NULL);
-	if (is_a_path(args[0]))
-		path = args[0];
-	else
-	{
-		path = get_binary(args[0], data->envp);
-		if (!path)
-			error_cmd_not_found(fd, args, NULL, NULL);
-	}
-	execute(path, args, data->envp);
-	return (0);
-}
-
-int	redirect_fd(t_data *data, int fd[2], char *path, char **args)
-{
-	int	file;
-
-	if (data->pos == 0)
-	{
-		close(fd[0]);
-		file = open(data->infile, O_RDONLY);
-		if (file == -1)
-			open_error(fd[1], data->infile, path, args);
-		dup_and_close(fd[1], file, fd[1]);
-	}
-	else
-	{
-		close(fd[1]);
-		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (file == -1)
-			open_error(fd[0], data->outfile, path, args);
-		dup_and_close(file, fd[0], fd[0]);
-	}
-	return (0);
-}
+/* int	redirect_fd(t_data *data, int fd[2], char *path, char **args) */
+/* { */
+/* 	int	file; */
+/**/
+/* 	if (data->pos == 0) */
+/* 	{ */
+/* 		close(fd[0]); */
+/* 		file = open(data->infile, O_RDONLY); */
+/* 		if (file == -1) */
+/* 			open_error(fd[1], data->infile, path, args); */
+/* 		dup_and_close(fd[1], file, fd[1]); */
+/* 	} */
+/* 	else */
+/* 	{ */
+/* 		close(fd[1]); */
+/* 		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
+/* 		if (file == -1) */
+/* 			open_error(fd[0], data->outfile, path, args); */
+/* 		dup_and_close(file, fd[0], fd[0]); */
+/* 	} */
+/* 	return (0); */
+/* } */
 
 int	execute(char *binary, char **args, char **envp)
 {

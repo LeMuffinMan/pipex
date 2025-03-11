@@ -11,76 +11,87 @@
 # **************************************************************************** #
 
 NAME=pipex
-#BONUS_NAME=pipex_bonus
+BONUS_NAME=pipex_bonus
 
 CC=cc
 CFLAGS=-Wall -Werror -Wextra
 INC=-I include
 INC_LIBFT=-I libft/include
-#INC_BONUS=-I bonus/include
+INC_BONUS=-I bonus/include
 
 SRC_DIR=src
 OBJ_DIR=obj
 
 LIBFT_SRC_DIR = libft/src
 LIBFT_OBJ_DIR = libft/obj
-#BONUS_SRC_DIR = bonus/src
+BONUS_SRC_DIR = bonus/src
+BONUS_OBJ_DIR = bonus/obj
 
 # Pour staisfaire le meilleur product manager du monde : TODO
 # Faire une variable pour le chemin 
 # Kenzo : faire la compil de la libft dans le makefile de la libft + y mettre la abs le printf et le gnl
 LIBFT_SRC_FILES = \
-    libft/src/ft_atoi.c \
-    libft/src/ft_bzero.c \
-    libft/src/ft_calloc.c \
-    libft/src/ft_isalnum.c \
-    libft/src/ft_isalpha.c \
-    libft/src/ft_isascii.c \
-    libft/src/ft_isdigit.c \
-    libft/src/ft_isprint.c \
-    libft/src/ft_itoa.c \
-    libft/src/ft_lstadd_back_bonus.c \
-    libft/src/ft_lstadd_front_bonus.c \
-    libft/src/ft_lstclear_bonus.c \
-    libft/src/ft_lstdelone_bonus.c \
-    libft/src/ft_lstiter_bonus.c \
-    libft/src/ft_lstlast_bonus.c \
-    libft/src/ft_lstnew_bonus.c \
-    libft/src/ft_lstsize_bonus.c \
-    libft/src/ft_memchr.c \
-    libft/src/ft_memcmp.c \
-    libft/src/ft_memcpy.c \
-    libft/src/ft_memmove.c \
-    libft/src/ft_memset.c \
-    libft/src/ft_putchar_fd.c \
-    libft/src/ft_putendl_fd.c \
-    libft/src/ft_putnbr_fd.c \
-    libft/src/ft_putstr_fd.c \
-    libft/src/ft_split.c \
-    libft/src/ft_strdup.c \
-    libft/src/ft_strchr.c \
-    libft/src/ft_striteri.c \
-    libft/src/ft_strjoin.c \
-    libft/src/ft_strlcat.c \
-    libft/src/ft_strlcpy.c \
-    libft/src/ft_strmapi.c \
-    libft/src/ft_strnstr.c \
-    libft/src/ft_strrchr.c \
-    libft/src/ft_strtrim.c \
-    libft/src/ft_substr.c \
-    libft/src/ft_strlen.c \
-    libft/src/ft_strncmp.c \
-    libft/src/ft_tolower.c \
-    libft/src/ft_toupper.c \
-    libft/src/ft_split.c \
-    libft/src/get_next_line.c \
-    libft/src/get_next_line_utils.c \
-    libft/src/ft_printf.c \
-    libft/src/hexa.c \
-    libft/src/int.c \
-    libft/src/ptr.c
+    $(LIBFT_SRC_DIR)/ft_atoi.c \
+    $(LIBFT_SRC_DIR)/ft_bzero.c \
+    $(LIBFT_SRC_DIR)/ft_calloc.c \
+    $(LIBFT_SRC_DIR)/ft_isalnum.c \
+    $(LIBFT_SRC_DIR)/ft_isalpha.c \
+    $(LIBFT_SRC_DIR)/ft_isascii.c \
+    $(LIBFT_SRC_DIR)/ft_isdigit.c \
+    $(LIBFT_SRC_DIR)/ft_isprint.c \
+    $(LIBFT_SRC_DIR)/ft_itoa.c \
+    $(LIBFT_SRC_DIR)/ft_lstadd_back_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstadd_front_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstclear_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstdelone_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstiter_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstlast_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstnew_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_lstsize_bonus.c \
+    $(LIBFT_SRC_DIR)/ft_memchr.c \
+    $(LIBFT_SRC_DIR)/ft_memcmp.c \
+    $(LIBFT_SRC_DIR)/ft_memcpy.c \
+    $(LIBFT_SRC_DIR)/ft_memmove.c \
+    $(LIBFT_SRC_DIR)/ft_memset.c \
+    $(LIBFT_SRC_DIR)/ft_putchar_fd.c \
+    $(LIBFT_SRC_DIR)/ft_putendl_fd.c \
+    $(LIBFT_SRC_DIR)/ft_putnbr_fd.c \
+    $(LIBFT_SRC_DIR)/ft_putstr_fd.c \
+    $(LIBFT_SRC_DIR)/ft_split.c \
+    $(LIBFT_SRC_DIR)/ft_strdup.c \
+    $(LIBFT_SRC_DIR)/ft_strchr.c \
+    $(LIBFT_SRC_DIR)/ft_striteri.c \
+    $(LIBFT_SRC_DIR)/ft_strjoin.c \
+    $(LIBFT_SRC_DIR)/ft_strlcat.c \
+    $(LIBFT_SRC_DIR)/ft_strlcpy.c \
+    $(LIBFT_SRC_DIR)/ft_strmapi.c \
+    $(LIBFT_SRC_DIR)/ft_strnstr.c \
+    $(LIBFT_SRC_DIR)/ft_strrchr.c \
+    $(LIBFT_SRC_DIR)/ft_strtrim.c \
+    $(LIBFT_SRC_DIR)/ft_substr.c \
+    $(LIBFT_SRC_DIR)/ft_strlen.c \
+    $(LIBFT_SRC_DIR)/ft_strncmp.c \
+    $(LIBFT_SRC_DIR)/ft_tolower.c \
+    $(LIBFT_SRC_DIR)/ft_toupper.c \
+    $(LIBFT_SRC_DIR)/ft_split.c \
+    $(LIBFT_SRC_DIR)/get_next_line.c \
+    $(LIBFT_SRC_DIR)/get_next_line_utils.c \
+    $(LIBFT_SRC_DIR)/ft_printf.c \
+    $(LIBFT_SRC_DIR)/hexa.c \
+    $(LIBFT_SRC_DIR)/int.c \
+    $(LIBFT_SRC_DIR)/ptr.c
 
 LIBFT_OBJ_FILES = $(LIBFT_SRC_FILES:.c=.o)
+
+BONUS_SRC_FILES = \
+    bonus/src/errors_bonus.c \
+    bonus/src/exec_bonus.c \
+    bonus/src/init_bonus.c \
+    bonus/src/parsing_bonus.c \
+    bonus/src/pipex_bonus.c \
+    bonus/src/utils_bonus.c
+
+BONUS_OBJ_FILES = $(addprefix $(BONUS_OBJ_DIR)/, $(subst bonus/src/, , $(BONUS_SRC_FILES:.c=.o)))
 
 SRC_FILES = \
     src/pipex.c \
@@ -114,6 +125,18 @@ $(LIBFT_A): $(LIBFT_SRC_FILES) FORCE
 $(OBJ_DIR)/%.o: %.c Makefile ./include/pipex.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC) $(INC_LIBFT) -I . -c $< -o $@
+
+bonus: $(BONUS_NAME)
+
+$(BONUS_OBJ_DIR)/%.o: bonus/src/%.c ./bonus/include/pipex_bonus.h Makefile libft/Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC_BONUS) $(INC_LIBFT) -c $< -o $@
+
+$(BONUS_NAME): $(BONUS_OBJ_FILES) $(LIBFT_A) ./bonus/include/pipex_bonus.h
+	$(CC) $(CFLAGS) $(BONUS_OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(BONUS_NAME)
+	@echo
+	@echo "$(GREEN)compilation successful ✅ $(BONUS_NAME)$(RESET)"
+	@echo
 
 clean:
 	rm -rf $(OBJ_DIR)/*

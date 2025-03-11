@@ -19,9 +19,9 @@ typedef struct s_data
 {
 	int 			fd_in;
 	int 			fd_out;
-	char			**envp;
-	char 			**av;
+	char * 		cmd;
 	pid_t			pid;
+	char			**env;
 	struct s_data	*next;
 }					t_data;
 
