@@ -47,6 +47,8 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
+//utiliser putstrfd
+
 int	main(int ac, char **av, char **envp)
 {
 	pid_t	pid1;
