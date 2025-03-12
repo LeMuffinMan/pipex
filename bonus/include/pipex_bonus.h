@@ -44,7 +44,7 @@ char				*get_binary(char *cmd, char **envp);
 // int					execute(char *binary, char **args, char **envp);
 
 // errors.c
-int					open_error(int fd, char *file, char *path, char **args);
+// int					open_error(int fd, char *file, char *path, char **args);
 // int					error_cmd_not_found(int fd[2], char **args, char *path,
 // 						char *binary);
 // int					error_permission_denied(char **args, char *binary);

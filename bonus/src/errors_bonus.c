@@ -16,17 +16,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int	open_error(int fd, char *file, char *path, char **args)
-{
-	write(2, "pipex: ", 7);
-	write(2, file, ft_strlen(file));
-	write(2, ": ", 2);
-	perror("");
-	free(path);
-	free_array(args);
-	close(fd);
-	exit(1);
-}
+/* int	open_error(int fd, char *file, char *path, char **args) */
+/* { */
+/* 	write(2, "pipex: ", 7); */
+/* 	write(2, file, ft_strlen(file)); */
+/* 	write(2, ": ", 2); */
+/* 	perror(""); */
+/* 	free(path); */
+/* 	free_array(args); */
+/* 	close(fd); */
+/* 	exit(1); */
+/* } */
 
 /* int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary) */
 /* { */

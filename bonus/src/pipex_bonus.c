@@ -35,6 +35,24 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
+int free_data(t_data **data)
+{
+	t_data *tmp;
+	t_data *next_node;
+
+	tmp = *data;
+	if (!*data)
+		return (1);
+	while(tmp->next)
+	{
+		next_node = tmp->next;
+		free(tmp);
+		tmp = next_node;
+	}
+	*data = NULL;
+	return (0);
+}
+
 //securiser et free toute la liste !
 int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
@@ -43,7 +61,9 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
 	{
-		//free !
+		free_data(data);
+		perror("malloc");
+		exit(1); //choisir 1 ou exit_failure
 	}
 	*data = node;
 	node->file = infile;
@@ -62,14 +82,15 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
 	{
-		//free_data(data); a ajouter PARTOUT !
-		//exit (1);
+		free_data(data);
+		perror("malloc");
+		exit(1); //choisir 1 ou exit_failure
 	}
 	tmp = *data;
 	while (tmp->next)
 		tmp = tmp->next;
 	tmp->next = node;
-	if (!*last_arg) // syntax ?
+	if (*last_arg) // syntax ?
 		node->file = last_arg; //bon compte ?
 	else
 		node->file = NULL;
@@ -107,23 +128,6 @@ int init_data(t_data **data, char **av, char **env)
 /* 	return (0); */
 /* } */
 
-int free_data(t_data **data)
-{
-	t_data *tmp;
-	t_data *next_node;
-
-	tmp = *data;
-	if (!*data)
-		return (1);
-	while(tmp->next)
-	{
-		next_node = tmp->next;
-		free(tmp);
-		tmp = next_node;
-	}
-	*data = NULL;
-	return (0);
-}
 
 int close_pipeline_free_exit(t_data **data)
 {
@@ -137,6 +141,7 @@ int close_pipeline_free_exit(t_data **data)
 			if (close(tmp->fd_in) == -1)
 			{
 				free_data(data);
+				perror("close"); // a mettre partout 
 				exit(1); 
 			}
 			if (close(tmp->fd_out) == -1)
@@ -163,6 +168,8 @@ int connect_nodes(t_data *node1, t_data *node2)
 	}
 	node1->fd_out = fd[1];
 	node2->fd_in = fd[0];
+	/* close(fd[0]); */
+	/* close(fd[1]); */
 	/* printf("%s fd_out will write to %s fd_in\n", node1->cmd, node2->cmd); */
 	return (0);
 }
@@ -175,6 +182,7 @@ int setup_pipeline(t_data **data)
 
 	if (pipe(pipe_begin) == -1)
 	{
+		free_data(data);
 		perror("pipe");
 		exit (EXIT_FAILURE);
 	}
@@ -196,10 +204,12 @@ int setup_pipeline(t_data **data)
 
 //free toute la liste !!!
 //code d'erreur ?
-int error_cmd_not_found(t_data **data, t_strs *strs)
+int error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
 {
 	ft_putstr_fd("pipex: command not found: ", 2);
-	ft_putstr_fd((*data)->cmd, 2); // a verifier ! donne la bonne cmd en avancant le ptr ?
+	if ((*tmp)->cmd)
+		ft_putstr_fd((*tmp)->cmd, 2); // a verifier ! donne la bonne cmd en avancant le ptr ?
+	ft_putstr_fd("\n", 2); // PAS SUUUUUR !
 	if (strs->args)
 		free_array(strs->args);
 	if (strs->path)
@@ -208,13 +218,23 @@ int error_cmd_not_found(t_data **data, t_strs *strs)
 	exit(127);
 }
 
-int dup_input_output(int fd_out, int fd_in)
+/* int dup_input_output(int fd_out, int fd_in) */
+/* { */
+/* 	if (dup2(fd_out, STDOUT_FILENO) == -1) */
+/* 		exit(errno); */
+/* 	if (dup2(fd_in, STDIN_FILENO) == -1) */
+/* 		exit(errno); */
+/* 	return (0); */
+/* } */
+
+int open_error(t_data **data, t_strs *strs)
 {
-	if (dup2(fd_out, STDOUT_FILENO) == -1)
-		exit(errno);
-	if (dup2(fd_in, STDIN_FILENO) == -1)
-		exit(errno);
-	return (0);
+	ft_putstr_fd("pipex: open error: ", 2);
+	perror("");
+	free_array(strs->args);
+	free(strs->path);
+	close_pipeline_free_exit(data);
+	exit(1); //exit 1 ?
 }
 
 //free toute la liste
@@ -223,31 +243,57 @@ int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
 {
 	int file;
 	
+	file = -1;
 	if ((*tmp)->file == av[1])
 	{
-		/* close(fd[0]); */
-		//a proteger
 		file = open(av[1], O_RDONLY);
 		if (file == -1)
-			/* open_error(); */
-		dup_input_output((*tmp)->fd_out, file);
+			open_error(data, strs);
+    if (dup2(file, STDIN_FILENO) == -1)
+    {
+    	close (file);
+    	open_error(data, strs);
+    }
+    close(file);
+    if (dup2((*tmp)->fd_out, STDOUT_FILENO) == -1)
+    {
+    	close((*tmp)->fd_out);
+    	open_error(data, strs);
+    }
+    close((*tmp)->fd_out);
 	}
 	else if ((*tmp)->file)
 	{
-		/* close(fd[1]); // pas sur ? */
-		// a proteger
 		file = open((*tmp)->file, O_WRONLY | O_CREAT | O_TRUNC, 0644); // APPEND ?
 		if (file == -1)
-			/* open_error(); */
-		dup_input_output((*tmp)->fd_in, file);
+			open_error(data, strs);
+		if (dup2(file, STDOUT_FILENO) == -1)
+		{
+			close(file);
+			open_error(data, strs);
+		}
+    close(file);
+    if (dup2((*tmp)->fd_in, STDIN_FILENO) == -1)
+    {
+    	close((*tmp)->fd_in);
+    	open_error(data, strs);
+    }
+    close((*tmp)->fd_in);
 	}
 	else 
 	{
-		/* close(fd[1]); */
-		//a proteger
-		/* close(fd[0]); */
-		//a proteger
-		dup_input_output((*tmp)->fd_out, (*tmp)->fd_in);
+    if (dup2((*tmp)->fd_out, STDOUT_FILENO) == -1)
+    {
+    	close((*tmp)->fd_out);
+    	open_error(data, strs);
+    }
+    close((*tmp)->fd_out);
+    if (dup2((*tmp)->fd_in, STDIN_FILENO) == -1)
+    {
+    	close((*tmp)->fd_in);
+    	open_error(data, strs);
+    }
+    close((*tmp)->fd_in);
 	}
 	return (0);
 }
@@ -265,13 +311,14 @@ int error_permission_denied(t_data **data, t_strs *strs)
 //gerer si on me donne PATH et pas d'env
 //free toute la liste !
 //il faut lui filer data pour qu'il puisse la free !
-int	execute(t_strs *strs, t_data **data, char **envp)
+int	execute(t_strs *strs, t_data **data)
 {
+	/* printf("executing cmd : %s\n", (*data)->cmd); */
 	if (!strs->path || access(strs->path, F_OK) != 0)
-		error_cmd_not_found(data, NULL);
+		error_cmd_not_found(data, NULL, NULL);
 	if (access(strs->path, X_OK) != 0)
 		error_permission_denied(data, strs);
-	if (execve(strs->path, strs->args, envp) != 0)
+	if (execve(strs->path, strs->args, (*data)->env) != 0)
 	{
 		free_array(strs->args);
 		free(strs->path);
@@ -295,25 +342,28 @@ int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	//cas 5 : no env et /usr/bin/ls
 	//cas 5 : no PATH et /usr/bin/ls
 	//cas 5 : PATH empty et /usr/bin/ls
+	if ((*tmp)->file)
+		printf("file = %s\n", (*tmp)->file);
+	printf("cmd = %s\n", (*tmp)->cmd);
 	strs.path = NULL;
 	strs.args = ft_split((*tmp)->cmd, ' ');
-	if (!strs.args)
-		error_cmd_not_found(data, &strs); //ajouter strs pour tout free
+	printf("args[0] = %s\n", strs.args[0]);
+	if (!strs.args[0]) // empeche un segfautl pour une cmd "" ?
+		error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
 	redirect_stdin_stdout(tmp, data, &strs, av); //en cas d'erreur args a free !
 	if (is_a_path(strs.args[0]))
 		strs.path = strs.args[0];
-	else
+	else if ((*data)->env) // voir les cas possibles ici
 	{
 		strs.path = get_binary(strs.args[0], (*tmp)->env);
 		if (!strs.path) // avec ou sans * ? 
-			error_cmd_not_found(data, &strs);
+			error_cmd_not_found(data, tmp, &strs);
 	}
-	execute(&strs, data, (*tmp)->env);
-	return(1);
+	else
+		error_cmd_not_found(data, tmp, &strs);
+	execute(&strs, tmp);
+	exit(0);
 }
-
-
-
 
 //revoir la doc !
 int wait_children(t_data **data)
@@ -340,6 +390,9 @@ int wait_children(t_data **data)
 }
 
 
+//seg fault si cmd 3 est ""
+//❯ ./pipex_bonus infile "ls -l" "wc -l" outfile
+//n'ecrit rien dans outfile MAIS il le cree
 int main (int ac, char **av, char **env)
 {
 	t_data *data;
