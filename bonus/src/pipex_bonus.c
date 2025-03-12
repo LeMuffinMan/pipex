@@ -35,11 +35,16 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
+//securiser et free toute la liste !
 int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
 	t_data *node;
 
 	node = malloc(sizeof(t_data));
+	if (node == NULL)
+	{
+		//free !
+	}
 	*data = node;
 	node->file = infile;
 	node->cmd = cmd;
@@ -48,6 +53,7 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	return (0);
 }
 
+//securiser et free toute la liste !
 int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 {
 	t_data *node;
@@ -87,20 +93,21 @@ int init_data(t_data **data, char **av, char **env)
 	return (0);
 }
 
-int print_lst(t_data *data)
-{
-	t_data *tmp;
+/* int print_lst(t_data *data) */
+/* { */
+/* 	t_data *tmp; */
+/**/
+/* 	tmp = data; */
+/* 	while (tmp->next) */
+/* 	{ */
+/* 		printf("%s\n", tmp->cmd); */
+/* 		tmp = tmp->next; */
+/* 	} */
+/* 	printf("%s\n", tmp->cmd); */
+/* 	return (0); */
+/* } */
 
-	tmp = data;
-	while (tmp->next)
-	{
-		printf("%s\n", tmp->cmd);
-		tmp = tmp->next;
-	}
-	printf("%s\n", tmp->cmd);
-	return (0);
-}
-
+//securiser et free toute la liste !
 int connect_nodes(t_data *node1, t_data *node2)
 {
 	int fd[2];
@@ -112,10 +119,11 @@ int connect_nodes(t_data *node1, t_data *node2)
 	}
 	node1->fd_out = fd[1];
 	node2->fd_in = fd[0];
-	printf("%s fd_out will write to %s fd_in\n", node1->cmd, node2->cmd);
+	/* printf("%s fd_out will write to %s fd_in\n", node1->cmd, node2->cmd); */
 	return (0);
 }
 
+//securiser et free toute la liste !
 int setup_pipeline(t_data **data)
 {
 	int pipe_begin[2];
@@ -128,44 +136,22 @@ int setup_pipeline(t_data **data)
 	}
 	(*data)->fd_in = -1;
 	(*data)->fd_out = pipe_begin[1];
-	printf("%s fd_in is infile | fd_out is %s\n", (*data)->cmd, (*data)->next->cmd);
+	/* printf("%s fd_in is infile | fd_out is %s\n", (*data)->cmd, (*data)->next->cmd); */
 	tmp = (*data)->next;
 	tmp->fd_in = pipe_begin[0];
-	printf("%s fd_in is %s\n", tmp->cmd, (*data)->cmd);
+	/* printf("%s fd_in is %s\n", tmp->cmd, (*data)->cmd); */
 	while (tmp->next)
 	{
 		connect_nodes(tmp, tmp->next);
 		tmp = tmp->next;
 	}
-	printf("%s will write in outfile\n", tmp->cmd);
+	/* printf("%s will write in outfile\n", tmp->cmd); */
 	tmp->fd_out = -2;
 	return (0);
 }
 
-int close_and_quit(int infile, int outfile, t_data *data)
-{
-	if (infile)
-	{
-		if (close(infile) == -1)
-			exit(errno);
-	}
-	if (outfile)
-	{
-		if (close(outfile) == -1)
-			exit(errno);
-	}
-	while (data->next)
-	{
-		if (close(data->fd_in) == -1)
-			exit(errno);
-		if (close(data->fd_out) == -1)
-			exit(errno);
-		data = data->next;
-	}
-	exit(errno);
-	//pas error code ?
-}
-
+//free toute la liste !!!
+//code d'erreur ?
 int error_cmd_not_found(t_data *data, char **args)
 {
 	ft_putstr_fd("pipex: command not found: ", 2);
@@ -179,7 +165,6 @@ int error_cmd_not_found(t_data *data, char **args)
 	exit(127);
 }
 
-//renommer
 int dup_input_output(int fd_out, int fd_in)
 {
 	if (dup2(fd_out, STDOUT_FILENO) == -1)
@@ -189,6 +174,7 @@ int dup_input_output(int fd_out, int fd_in)
 	return (0);
 }
 
+//free toute la liste
 int redirect_stdin_stdout(t_data *data, char *path, char **args, char **av)
 {
 	int file;
@@ -225,10 +211,12 @@ int redirect_stdin_stdout(t_data *data, char *path, char **args, char **av)
 }
 
 //gerer si on me donne PATH et pas d'env
+//free toute la liste !
+//il faut lui filer data pour qu'il puisse la free !
 int	execute(char *binary, char **args, char **envp)
 {
 	if (!binary || access(binary, F_OK) != 0)
-		/* error_cmd_not_found(NULL, args, NULL, NULL); */
+		/* error_cmd_not_found(data, NULL); */
 	if (access(binary, X_OK) != 0)
 		error_permission_denied(args, binary);
 	if (execve(binary, args, envp) != 0)
@@ -241,6 +229,8 @@ int	execute(char *binary, char **args, char **envp)
 	return (0);
 }
 
+//voir tous les tests chiants et securiser 
+//il faut free toute la liste !!
 int parse_redirect_execute(t_data *data, char **av)
 {
 	char **args;
@@ -263,11 +253,55 @@ int parse_redirect_execute(t_data *data, char **av)
 	else
 	{
 		path = get_binary(args[0], data->env);
-		/* if (!path) */
-			/* error_cmd_not_found(); */
+		if (!path)
+			error_cmd_not_found(data, NULL);
 	}
 	execute(path, args, data->env);
 	return(1);
+}
+
+int free_data(t_data **data)
+{
+	t_data *tmp;
+	t_data *next_node;
+
+	tmp = *data;
+	if (!*data)
+		return (1);
+	while(tmp->next)
+	{
+		next_node = tmp->next;
+		free(tmp);
+		tmp = next_node;
+	}
+	*data = NULL;
+	return (0);
+}
+
+int close_pipeline_free_exit(t_data **data)
+{
+	t_data *tmp;
+
+	tmp = *data;
+	while (tmp->next)
+	{
+		if (tmp->fd_in != -1)
+		{
+			if (close(tmp->fd_in) == -1)
+			{
+				free_data(data);
+				exit(1); 
+			}
+			if (close(tmp->fd_out) == -1)
+			{
+				free_data(data);
+				exit(1);
+			}
+		}
+		tmp = tmp->next;
+	}
+	free_data(data);
+	return (0);
 }
 
 //revoir la doc !
@@ -279,8 +313,8 @@ int wait_children(t_data *data)
 	exit_code = EXIT_SUCCESS;
 	while (data->next)
 	{
-		/* if (waitpid(data->pid, &status, 0) == -1) */
-			/* close_free_and_quit(); */
+		if (waitpid(data->pid, &status, 0) == -1)
+			close_pipeline_free_exit(&data);
 		if (WIFEXITED(status))
 			exit_code = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
@@ -294,6 +328,7 @@ int wait_children(t_data *data)
 	return (exit_code);
 }
 
+
 int main (int ac, char **av, char **env)
 {
 	t_data *data;
@@ -303,36 +338,23 @@ int main (int ac, char **av, char **env)
 		init_data(&data, av, env);	
 		setup_pipeline(&data); // verifier ac - 1
 		data->pid = fork();
-		/* if (data->pid == -1) */
-		/* 	close_and_quit(infile, outfile, data); */
+		if (data->pid == -1)
+			close_pipeline_free_exit(&data);
 		if (data->pid == 0)
-		{
-			/* if (close(outfile) == -1) */
-				/* close_and_quit(infile, NULL, data); */
 			parse_redirect_execute(data, av); // faire une copie du noeud et free la liste dans le child ?
-		}
-		else 
-		{
-			/* if(close(infile) == -1) */
-				/* close_and_quit(NULL, outfile, data); */
-		}
 		data = data->next;
 		while (data->next)
 		{
 			data->pid = fork();
-			/* if (data->pid == -1) */
-			/* 	close_and_quit(infile, outfile, data); //attendre un child ? */
+			if (data->pid == -1)
+				close_pipeline_free_exit(&data);
 			if (data->pid == 0)
-			{
-				/* if(close(outfile) == -1) */
-						/* close_and_quit(infile, NULL, data); */
 				parse_redirect_execute(data, av);
-			}
 			data = data->next;
 		}
 		data->pid = fork();
-		/* if (data->pid == -1) */
-		/* 		close_and_quit(infile, outfile, data); //attendre un child ? */
+		if (data->pid == -1)
+			close_pipeline_free_exit(&data);
 		if (data->pid == 0)
 			parse_redirect_execute(data, av);
 		exit(wait_children(data)); 
