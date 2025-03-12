@@ -47,12 +47,12 @@ int	open_error(int fd, char *file, char *path, char **args)
 /* 	exit(127); */
 /* } */
 
-int	error_permission_denied(char **args, char *binary)
-{
-	write(2, "pipex: ", 7);
-	write(2, "permission denied: ", 19);
-	perror("");
-	free_array(args);
-	free(binary);
-	exit(126);
-}
+/* int	error_permission_denied(char **args, char *binary) */
+/* { */
+/* 	write(2, "pipex: ", 7); */
+/* 	write(2, "permission denied: ", 19); */
+/* 	perror(""); */
+/* 	free_array(args); */
+/* 	free(binary); */
+/* 	exit(126); */
+/* } */
