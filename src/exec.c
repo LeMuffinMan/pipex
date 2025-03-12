@@ -73,6 +73,7 @@ int	redirect_fd(t_data *data, int fd[2], char *path, char **args)
 	if (data->pos == 0)
 	{
 		close(fd[0]);
+		//proteger !
 		file = open(data->infile, O_RDONLY);
 		if (file == -1)
 			open_error(fd[1], data->infile, path, args);
@@ -81,6 +82,7 @@ int	redirect_fd(t_data *data, int fd[2], char *path, char **args)
 	else
 	{
 		close(fd[1]);
+		//proteger !
 		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (file == -1)
 			open_error(fd[0], data->outfile, path, args);

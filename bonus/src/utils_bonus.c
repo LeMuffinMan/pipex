@@ -40,14 +40,14 @@ int	is_a_path(char *s)
 	return (0);
 }
 
-int	close_and_quit(int fd[2], int error_code)
-{
-	if (close(fd[0]) == -1)
-		exit(errno);
-	if (close(fd[1]) == -1)
-		exit(errno);
-	exit(error_code);
-}
+/* int	close_and_quit(int fd[2], int error_code) */
+/* { */
+/* 	if (close(fd[0]) == -1) */
+/* 		exit(errno); */
+/* 	if (close(fd[1]) == -1) */
+/* 		exit(errno); */
+/* 	exit(error_code); */
+/* } */
 
 void	free_array(char **s)
 {

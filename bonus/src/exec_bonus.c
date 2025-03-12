@@ -18,26 +18,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int	wait_children(int fd[2], pid_t pid1, pid_t pid2)
-{
-	int	status;
-	int	exit_code;
-
-	exit_code = EXIT_SUCCESS;
-	if (waitpid(pid1, &status, 0) == -1)
-		close_and_quit(fd, errno);
-	if (waitpid(pid2, &status, 0) == -1)
-		close_and_quit(fd, errno);
-	if (WIFEXITED(status))
-		exit_code = WEXITSTATUS(status);
-	else if (WIFSIGNALED(status))
-		exit_code = 128 + WTERMSIG(status);
-	if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-		exit_code = WEXITSTATUS(status);
-	else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
-		exit_code = 128 + WTERMSIG(status);
-	return (exit_code);
-}
+/* int	wait_children(int fd[2], pid_t pid1, pid_t pid2) */
+/* { */
+/* 	int	status; */
+/* 	int	exit_code; */
+/**/
+/* 	exit_code = EXIT_SUCCESS; */
+/* 	if (waitpid(pid1, &status, 0) == -1) */
+/* 		close_and_quit(fd, errno); */
+/* 	if (waitpid(pid2, &status, 0) == -1) */
+/* 		close_and_quit(fd, errno); */
+/* 	if (WIFEXITED(status)) */
+/* 		exit_code = WEXITSTATUS(status); */
+/* 	else if (WIFSIGNALED(status)) */
+/* 		exit_code = 128 + WTERMSIG(status); */
+/* 	if (exit_code == EXIT_SUCCESS && WIFEXITED(status)) */
+/* 		exit_code = WEXITSTATUS(status); */
+/* 	else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status)) */
+/* 		exit_code = 128 + WTERMSIG(status); */
+/* 	return (exit_code); */
+/* } */
 
 /* int	parse_redirect_execute(t_data *data, int fd[2]) */
 /* { */
@@ -89,18 +89,18 @@ int	wait_children(int fd[2], pid_t pid1, pid_t pid2)
 /* 	return (0); */
 /* } */
 
-int	execute(char *binary, char **args, char **envp)
-{
-	if (!binary || access(binary, F_OK) != 0)
-		error_cmd_not_found(NULL, args, NULL, NULL);
-	if (access(binary, X_OK) != 0)
-		error_permission_denied(args, binary);
-	if (execve(binary, args, envp) != 0)
-	{
-		free_array(args);
-		free(binary);
-		perror("execve error");
-		exit(errno);
-	}
-	return (0);
-}
+/* int	execute(char *binary, char **args, char **envp) */
+/* { */
+/* 	if (!binary || access(binary, F_OK) != 0) */
+		/* error_cmd_not_found(NULL, args, NULL, NULL); */
+/* 	if (access(binary, X_OK) != 0) */
+		/* error_permission_denied(args, binary); */
+/* 	if (execve(binary, args, envp) != 0) */
+/* 	{ */
+/* 		free_array(args); */
+/* 		free(binary); */
+/* 		perror("execve error"); */
+/* 		exit(errno); */
+/* 	} */
+/* 	return (0); */
+/* } */

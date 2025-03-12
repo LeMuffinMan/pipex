@@ -23,18 +23,6 @@
 #include <sys/wait.h> // wait, waitpid
 #include <unistd.h>   // fork, pipe, dup2, execve, access, close, read, write
 
-// gerer les arguments des commandes
-// gerer la stdout de la 1ere commande : pas dans le fd 0, utiliser dup2
-// D'ABORD : on verifie si file1 exist et est accessible
-// Puis, on le prend comme fd / stdin
-// on execute la commande avec ce fd
-// on redirige la stdout de cmd1 vers stdin de cmd2
-// on verifie si file2 exists et est accessible, on le touch si il existe pas ?
-// on execute cmd2 avec en stdin la stdout de cmd1,
-/* et on la stdout de cmd2 est redirigee vers file2 */
-// on close tous les fd
-// on attend les children
-
 /// access(const char *pathname, int mode)
 ///- F_OK : file exists
 ///- R_OK : readable
@@ -47,48 +35,20 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-/* int parse_redirect_execute(char *av, int fd[2], char **envp, pid_t pid) */
-/* { */
-/* 	char *path; */
-/* 	char **args; */
-/**/
-/* 	path = NULL; */
-/* 	args = ft_split(av, ' '); */
-/* 	if (!*args) */
-/* 		error_no_cmd(); */
-/* 	if (is_a_path(args[0])) */
-/* 		path = args[0]; */
-/* 	else */
-/* 	{ */
-/* 		path = get_binary(args[0], envp); */
-/* 		if (!path) */
-/* 			error_no_cmd(); */
-/* 	} */
-/* 	execute(path, args, envp); */
-/* 	return (0); */
-/* } */
-/**/
-
-/* int setup_pipeline(t_data **data, int fd_in, int fd_out) */
-/* { */
-/* 	node->fd_in = fd_in; */
-/* 	node->fd_out = fd_out; */
-/* 	return (0); */
-/* } */
-
-int add_first_node(t_data **data, char *cmd, char **env)
+int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
 	t_data *node;
 
 	node = malloc(sizeof(t_data));
 	*data = node;
+	node->file = infile;
 	node->cmd = cmd;
 	node->env = env;
 	node->next = NULL;
 	return (0);
 }
 
-int add_node(t_data **data, char *cmd, char **env)
+int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 {
 	t_data *node;
 	t_data *tmp;
@@ -96,13 +56,17 @@ int add_node(t_data **data, char *cmd, char **env)
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
 	{
-		//free_data(data);
+		//free_data(data); a ajouter PARTOUT !
 		//exit (1);
 	}
 	tmp = *data;
 	while (tmp->next)
 		tmp = tmp->next;
 	tmp->next = node;
+	if (!*last_arg) // syntax ?
+		node->file = last_arg; //bon compte ?
+	else
+		node->file = NULL;
 	node->cmd = cmd;
 	node->env = env;
 	node->next = NULL;
@@ -113,11 +77,11 @@ int init_data(t_data **data, char **av, char **env)
 {
 	int i;
 
-	add_first_node(data, av[2], env);
+	add_first_node(data, av[2], env, av[1]);
 	i = 3;
 	while (av[i + 1])
 	{
-		add_node(data, av[i], env);
+		add_node(data, av[i], env, av[i + 1]);
 		i++;
 	}
 	return (0);
@@ -137,24 +101,6 @@ int print_lst(t_data *data)
 	return (0);
 }
 
-/* int pipe_children(t_data **data, int fd_end[2]) */
-/* { */
-/* 	t_data *tmp; */
-/* 	int fd[2]; */
-/**/
-/* 	// une condition pour setup le dernier pipe */
-/* 	tmp = (*data)->next; */
-/* 	if (pipe(fd) == -1) */
-/* 	{ */
-		/* error  */
-/* 	} */
-/* 	tmp->fd_in = fd[0]; */
-/* 	 */
-/**/
-/**/
-/* } */
-
-
 int connect_nodes(t_data *node1, t_data *node2)
 {
 	int fd[2];
@@ -170,7 +116,7 @@ int connect_nodes(t_data *node1, t_data *node2)
 	return (0);
 }
 
-int setup_pipeline(t_data **data, int infile, int outfile)
+int setup_pipeline(t_data **data)
 {
 	int pipe_begin[2];
 	t_data *tmp;
@@ -180,7 +126,7 @@ int setup_pipeline(t_data **data, int infile, int outfile)
 		perror("pipe");
 		exit (EXIT_FAILURE);
 	}
-	(*data)->fd_in = infile;
+	(*data)->fd_in = -1;
 	(*data)->fd_out = pipe_begin[1];
 	printf("%s fd_in is infile | fd_out is %s\n", (*data)->cmd, (*data)->next->cmd);
 	tmp = (*data)->next;
@@ -192,134 +138,207 @@ int setup_pipeline(t_data **data, int infile, int outfile)
 		tmp = tmp->next;
 	}
 	printf("%s will write in outfile\n", tmp->cmd);
-	tmp->fd_out = outfile;
+	tmp->fd_out = -2;
 	return (0);
+}
+
+int close_and_quit(int infile, int outfile, t_data *data)
+{
+	if (infile)
+	{
+		if (close(infile) == -1)
+			exit(errno);
+	}
+	if (outfile)
+	{
+		if (close(outfile) == -1)
+			exit(errno);
+	}
+	while (data->next)
+	{
+		if (close(data->fd_in) == -1)
+			exit(errno);
+		if (close(data->fd_out) == -1)
+			exit(errno);
+		data = data->next;
+	}
+	exit(errno);
+	//pas error code ?
+}
+
+int error_cmd_not_found(t_data *data, char **args)
+{
+	ft_putstr_fd("pipex: command not found: ", 2);
+	ft_putstr_fd(data->cmd, 2); // a verifier ! donne la bonne cmd en avancant le ptr ?
+	if (args)
+		free_array(args);
+	if (close(data->fd_in) == -1)
+		exit(127);
+	if (close(data->fd_out) == -1)
+		exit(127);
+	exit(127);
+}
+
+//renommer
+int dup_input_output(int fd_out, int fd_in)
+{
+	if (dup2(fd_out, STDOUT_FILENO) == -1)
+		exit(errno);
+	if (dup2(fd_in, STDIN_FILENO) == -1)
+		exit(errno);
+	return (0);
+}
+
+int redirect_stdin_stdout(t_data *data, char *path, char **args, char **av)
+{
+	int file;
+	
+	(void)path;
+	(void)args; // a free
+	if (data->file == av[1])
+	{
+		/* close(fd[0]); */
+		//a proteger
+		file = open(av[1], O_RDONLY);
+		if (file == -1)
+			/* open_error(); */
+		dup_input_output(data->fd_out, file);
+	}
+	else if (data->file)
+	{
+		/* close(fd[1]); // pas sur ? */
+		// a proteger
+		file = open(data->file, O_WRONLY | O_CREAT | O_TRUNC, 0644); // APPEND ?
+		if (file == -1)
+			/* open_error(); */
+		dup_input_output(data->fd_in, file);
+	}
+	else 
+	{
+		/* close(fd[1]); */
+		//a proteger
+		/* close(fd[0]); */
+		//a proteger
+		dup_input_output(data->fd_out, data->fd_in);
+	}
+	return (0);
+}
+
+//gerer si on me donne PATH et pas d'env
+int	execute(char *binary, char **args, char **envp)
+{
+	if (!binary || access(binary, F_OK) != 0)
+		/* error_cmd_not_found(NULL, args, NULL, NULL); */
+	if (access(binary, X_OK) != 0)
+		error_permission_denied(args, binary);
+	if (execve(binary, args, envp) != 0)
+	{
+		free_array(args);
+		free(binary);
+		perror("execve error");
+		exit(errno);
+	}
+	return (0);
+}
+
+int parse_redirect_execute(t_data *data, char **av)
+{
+	char **args;
+	char *path;
+
+	//cas 1 : ls
+	//cas 2 : ls -l
+	//cas 3 : /usr/bin/ls
+	//cas 4 : /usr/bin/ls -l
+	//cas 5 : no env et /usr/bin/ls
+	//cas 5 : no PATH et /usr/bin/ls
+	//cas 5 : PATH empty et /usr/bin/ls
+	path = NULL;
+	args = ft_split(data->cmd, ' ');
+	if (!*args)
+		error_cmd_not_found(data, NULL);
+	redirect_stdin_stdout(data, path, args, av); //en cas d'erreur args a free !
+	if (is_a_path(args[0]))
+		path = args[0];
+	else
+	{
+		path = get_binary(args[0], data->env);
+		/* if (!path) */
+			/* error_cmd_not_found(); */
+	}
+	execute(path, args, data->env);
+	return(1);
+}
+
+//revoir la doc !
+int wait_children(t_data *data)
+{
+	int status;
+	int exit_code;
+
+	exit_code = EXIT_SUCCESS;
+	while (data->next)
+	{
+		/* if (waitpid(data->pid, &status, 0) == -1) */
+			/* close_free_and_quit(); */
+		if (WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			exit_code = 128 + WTERMSIG(status);
+		if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
+		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
+			exit_code = 128 + WTERMSIG(status);
+		data = data->next;
+	}
+	return (exit_code);
 }
 
 int main (int ac, char **av, char **env)
 {
 	t_data *data;
-	int infile;
-	int outfile;
 	
 	if (ac >= 5)
 	{
 		init_data(&data, av, env);	
-		infile = open(av[1], O_RDONLY);
-		outfile = open(av[ac], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		setup_pipeline(&data, infile, outfile);
-		return (0);
+		setup_pipeline(&data); // verifier ac - 1
 		data->pid = fork();
-		if (data->pid == -1)
-		{
-			//pipe error 
-		}
+		/* if (data->pid == -1) */
+		/* 	close_and_quit(infile, outfile, data); */
 		if (data->pid == 0)
 		{
-			//close ?
-			/* parse_redirect_execute() */
+			/* if (close(outfile) == -1) */
+				/* close_and_quit(infile, NULL, data); */
+			parse_redirect_execute(data, av); // faire une copie du noeud et free la liste dans le child ?
 		}
 		else 
 		{
-			//le parent doit faire quelque chose ?
+			/* if(close(infile) == -1) */
+				/* close_and_quit(NULL, outfile, data); */
 		}
+		data = data->next;
 		while (data->next)
 		{
 			data->pid = fork();
-			if (data->pid == -1)
-			{
-				//pipe error 
-			}
+			/* if (data->pid == -1) */
+			/* 	close_and_quit(infile, outfile, data); //attendre un child ? */
 			if (data->pid == 0)
 			{
-				//close ?
-				/* parse_redirect_execute() */
-			}
-			else 
-			{
-				//parent doit faire qqchose ?
+				/* if(close(outfile) == -1) */
+						/* close_and_quit(infile, NULL, data); */
+				parse_redirect_execute(data, av);
 			}
 			data = data->next;
 		}
 		data->pid = fork();
-		if (data->pid == -1)
-		{
-			//pipe error 
-		}
+		/* if (data->pid == -1) */
+		/* 		close_and_quit(infile, outfile, data); //attendre un child ? */
 		if (data->pid == 0)
-		{
-			//close ?
-			/* parse_redirect_execute() */
-		}
-		else 
-		{
-			//le parent doit faire quelque chose ?
-		}
-		//wait les childs
-		//exit 
+			parse_redirect_execute(data, av);
+		exit(wait_children(data)); 
 	}
 }
 
-/* int	main(int ac, char **av, char **envp) */
-/* { */
-/* 	int		fd[2]; */
-/* 	pid_t pid; */
-/* 	int i; */
-/**/
-/* 	i = 2; */
-/* 	while (av[i + 2]) */
-/* 	{ */
-/*   	if (pipe(fd) == -1) { */
-/*       	perror("pipe"); */
-/*       	exit(EXIT_FAILURE); */
-/*   	} */
-/*   	i++; */
-/*   	pid = fork(); */
-/*   	if (pid == -1) */
-/*   		close_and_quit(fd, errno); //revoir */
-/*   	if (pid == 0) */
-/*   	{ */
-/*   		if (i == 2) */
-/*   		{ */
-/*   			fd[0] = open(av[1], O_RDONLY); */
-/*   			if (fd[0] == -1) */
-/*   				open_error(fd[0], av[1]) */
-/*   			//close ici ? */
-/*   			if (dup2(fd[1], STDOUT_FILENO) == -1) */
-/*   			 exit(errno); // a proteger mieux ? */
-/*   		} */
-/*   		else if (i == ac - 1) */
-/*   		{ */
-/*   			fd[1] = open(av[ac - 1],  O_WRONLY | O_CREAT | O_TRUNC, 0644); */
-/*   			if (fd[1] == -1) */
-/*   				open_error(fd[0], av[1]) */
-/*   			if (dup2(fd[0], STDIN_FILENO) == -1) */
-/*   			 exit (errno); */
-/*   		} */
-/*   		else */
-/*   		{ */
-/* 				if (dup2(fd[1], STDOUT_FILENO) == -1) */
-/* 					exit(errno); */
-/* 				if (dup2(fd[0], STDIN_FILENO) == -1) */
-/* 					exit(errno); */
-/*   		} */
-/*   		parse_redirect_execute(av[i], fd, envp, pid); */
-/*   	} */
-/*   	else  */
-/*   	{ */
-/*   		close (fd[1]); */
-/*   		close (fd[0]); */
-/*   	} */
-/*   } */
-/* 	i = 2; */
-/* 	while (i < ac - 1) */
-/* 	{ */
-/* 		wait(NULL); */
-/* 		i++ */
-/* 	} */
-/* 	return (0); */
-/*  } */
-	
 // si on supprime que la ligne PATH ?
 // env -i / unset PATH ?
 //
@@ -334,17 +353,3 @@ int main (int ac, char **av, char **env)
 ///
 ///
 
-/* int i = 0; */
-/* printf("cmd1->binary = %s\n", data->binary); */
-/* while (data->args[i]) */
-/* { */
-/*   printf("cmd1->args = %s\n", data->args[i]); */
-/*   i++; */
-/* } */
-/* printf("cmd2->binary = %s\n", data->next->binary); */
-/* i = 0; */
-/* while (data->next->args[i]) */
-/* { */
-/*   printf("cmd2->args = %s\n", data->next->args[i]); */
-/*   i++; */
-/* } */

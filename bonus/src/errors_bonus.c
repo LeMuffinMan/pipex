@@ -28,24 +28,24 @@ int	open_error(int fd, char *file, char *path, char **args)
 	exit(1);
 }
 
-int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary)
-{
-	write(2, "pipex: ", 7);
-	write(2, "command not found: ", 19);
-	if (args[0])
-		write(2, args[0], ft_strlen(args[0]));
-	write(2, "\n", 1);
-	if (binary)
-		free(binary);
-	if (path)
-		free(path);
-	free_array(args);
-	if (close(fd[0]) == -1)
-		exit(127);
-	if (close(fd[1]) == -1)
-		exit(127);
-	exit(127);
-}
+/* int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary) */
+/* { */
+/* 	write(2, "pipex: ", 7); */
+/* 	write(2, "command not found: ", 19); */
+/* 	if (args[0]) */
+/* 		write(2, args[0], ft_strlen(args[0])); */
+/* 	write(2, "\n", 1); */
+/* 	if (binary) */
+/* 		free(binary); */
+/* 	if (path) */
+/* 		free(path); */
+/* 	free_array(args); */
+/* 	if (close(fd[0]) == -1) */
+/* 		exit(127); */
+/* 	if (close(fd[1]) == -1) */
+/* 		exit(127); */
+/* 	exit(127); */
+/* } */
 
 int	error_permission_denied(char **args, char *binary)
 {

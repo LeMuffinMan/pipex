@@ -17,6 +17,7 @@
 
 typedef struct s_data
 {
+	char *file;
 	int 			fd_in;
 	int 			fd_out;
 	char * 		cmd;
@@ -29,22 +30,22 @@ typedef struct s_data
 char				*get_binary(char *cmd, char **envp);
 
 // exec.c
-int					wait_children(int fd[2], pid_t pid1, pid_t pid2);
-int					parse_redirect_execute(t_data *data, int fd[2]);
-int					redirect_fd(t_data *data, int fd[2], char *path,
-						char **args);
-int					execute(char *binary, char **args, char **envp);
+// int					wait_children(int fd[2], pid_t pid1, pid_t pid2);
+// int					parse_redirect_execute(t_data *data, int fd[2]);
+// int					redirect_fd(t_data *data, int fd[2], char *path,
+// 						char **args);
+// int					execute(char *binary, char **args, char **envp);
 
 // errors.c
 int					open_error(int fd, char *file, char *path, char **args);
-int					error_cmd_not_found(int fd[2], char **args, char *path,
-						char *binary);
+// int					error_cmd_not_found(int fd[2], char **args, char *path,
+// 						char *binary);
 int					error_permission_denied(char **args, char *binary);
 
 // utils.c
 int					dup_and_close(int fd_out, int fd_in, int fd_to_close);
 int					is_a_path(char *s);
-int					close_and_quit(int fd[2], int error_code);
+int close_and_quit(int infile, int outfile, t_data *data);
 void				free_array(char **s);
 
 // init.c
