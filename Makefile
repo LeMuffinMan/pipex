@@ -14,7 +14,7 @@ NAME=pipex
 BONUS_NAME=pipex_bonus
 
 CC=cc
-CFLAGS=-Wall -Werror -Wextra
+CFLAGS=-Wall -Werror -Wextra -g3 
 INC=-I include
 INC_LIBFT=-I libft/include
 INC_BONUS=-I bonus/include
