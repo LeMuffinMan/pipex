@@ -71,6 +71,8 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	node->env = env;
 	node->next = NULL;
 	node->prev = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
 	return (0);
 }
 
@@ -80,25 +82,28 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	t_data *node;
 	t_data *tmp;
 
+	node = NULL;
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
 	{
 		free_data(data);
 		perror("malloc");
-		exit(1); //choisir 1 ou exit_failure
+		exit(1);
 	}
 	tmp = *data;
 	while (tmp->next)
 		tmp = tmp->next;
 	tmp->next = node;
 	node->prev = tmp;
-	if (*last_arg) // syntax ?
-		node->file = last_arg; //bon compte ?
+	if (*last_arg)
+		node->file = last_arg;
 	else
 		node->file = NULL;
 	node->cmd = cmd;
 	node->env = env;
 	node->next = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
 	return (0);
 }
 
@@ -168,7 +173,7 @@ int wait_children(t_data **data)
 			exit_code = WEXITSTATUS(status);
 		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
-		tmp = tmp->next; //les fuites viennent de la !
+		tmp = tmp->next;
 	}
 	free_data(data);
 	return (exit_code);
@@ -250,6 +255,7 @@ int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
           close(file);
           open_error(data, strs);
       }
+    	close((*tmp)->fd[0]);
     	(*tmp)->fd[0] = file;
 			close(file);
       if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
@@ -367,39 +373,40 @@ int get_pipe(t_data **node)
 //seg fault si cmd 3 est ""
 int main(int ac, char **av, char **env)
 {
-    t_data *data;
-    t_data *tmp;
+  t_data *data;
+  t_data *tmp;
 
-    if (ac >= 5)
+	data = NULL;
+  if (ac >= 5)
+  {
+    init_data(&data, av, env);    
+    tmp = data;
+    while(tmp)
     {
-      init_data(&data, av, env);    
-      tmp = data;
-      while(tmp)
+      if (tmp && tmp->next)
+        get_pipe(&tmp);
+      tmp->pid = fork();
+      if (tmp->pid == -1)
+          close_pipeline_free_exit(&data);
+      if (tmp->pid == 0)
+          parse_redirect_execute(&data, &tmp, av);
+      else
       {
-      	if (tmp && tmp->next)
-          get_pipe(&tmp);
-        tmp->pid = fork();
-        if (tmp->pid == -1)
-            close_pipeline_free_exit(&data);
-        if (tmp->pid == 0)
-            parse_redirect_execute(&data, &tmp, av);
-        else
-        {
-        		if (tmp->fd[1] > 2)
-        			close(tmp->fd[1]);
-        		if (tmp && tmp->prev)
-            	close(tmp->prev->fd[0]);
-        }
-        tmp = tmp->next;
+        	if (tmp->fd[1] > 2)
+        		close(tmp->fd[1]);
+        	if (tmp->prev)
+            close(tmp->prev->fd[0]);
       }
-      exit(wait_children(&data)); 
+      tmp = tmp->next;
     }
-    else 
-    {
-    	ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
-    	free_data(&data);
-    	exit(1); // ou 1 ?
-    }
+    exit(wait_children(&data)); 
+  }
+  else 
+  {
+    ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
+    free_data(&data);
+    exit(1); // ou 1 ?
+  }
 }
 
 // si on supprime que la ligne PATH ?
