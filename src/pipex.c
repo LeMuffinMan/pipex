@@ -56,6 +56,7 @@ int	main(int ac, char **av, char **envp)
 	int		fd[2];
 	t_data	data;
 
+	//proteger si ac < 5
 	data.envp = envp;
 	init(&data, ac, av, fd);
 	pid1 = fork();

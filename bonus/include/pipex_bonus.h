@@ -17,21 +17,21 @@
 
 typedef struct s_data
 {
-	char *file;
-	int 			fd_in;
-	int 			fd_out;
-	char * 		cmd;
+	char			*file;
+	int 			fd[2];
+	char			*cmd;
 	pid_t			pid;
 	char			**env;
 	struct s_data	*next;
+	struct s_data	*prev;
 }					t_data;
 
 typedef struct s_strs
 {
-	char **args;
-	char *path;
-	char *av;
-} t_strs;
+	char			**args;
+	char			*path;
+	char			*av;
+}					t_strs;
 
 // a ranger :
 char				*get_binary(char *cmd, char **envp);
@@ -52,7 +52,7 @@ char				*get_binary(char *cmd, char **envp);
 // utils.c
 int					dup_and_close(int fd_out, int fd_in, int fd_to_close);
 int					is_a_path(char *s);
-int close_and_quit(int infile, int outfile, t_data *data);
+int					close_and_quit(int infile, int outfile, t_data *data);
 void				free_array(char **s);
 
 // init.c
