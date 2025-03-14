@@ -43,7 +43,7 @@ int free_data(t_data **data)
 	tmp = *data;
 	if (!*data)
 		return (1);
-	while(tmp)
+	while(tmp->next)
 	{
 		next_node = tmp->next;
 		free(tmp);
@@ -152,13 +152,11 @@ int wait_children(t_data **data)
 {
 	int status;
 	int exit_code;
-	t_data *tmp;
 
-	tmp = *data;
 	exit_code = EXIT_SUCCESS;
-	while (tmp->next)
+	while ((*data)->next)
 	{
-		if (waitpid(tmp->pid, &status, 0) == -1)
+		if (waitpid((*data)->pid, &status, 0) == -1)
 			close_pipeline_free_exit(data);
 		if (WIFEXITED(status))
 			exit_code = WEXITSTATUS(status);
@@ -168,9 +166,8 @@ int wait_children(t_data **data)
 			exit_code = WEXITSTATUS(status);
 		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
-		tmp = tmp->next; //les fuites viennent de la !
+		*data = (*data)->next; //les fuites viennent de la !
 	}
-	free_data(data);
 	return (exit_code);
 }
 
@@ -250,7 +247,6 @@ int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
           close(file);
           open_error(data, strs);
       }
-    	(*tmp)->fd[0] = file;
 			close(file);
       if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
       {
@@ -269,7 +265,6 @@ int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
           	close(file);
           	open_error(data, strs);
       	}
-    		(*tmp)->fd[1] = file;
         close(file);
         if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
         {
@@ -277,6 +272,7 @@ int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
             open_error(data, strs);
         }
         close((*tmp)->fd[0]);
+    		/* close((*tmp)->fd[1]); */
         return (0);
     }
     // pipe to pipe case
@@ -351,7 +347,7 @@ int get_pipe(t_data **node)
 	if (node && !(*node)->prev)
 	{
 		(*node)->fd[1] = fd[1];
-		(*node)->fd[0] = fd[0];
+		(*node)->fd[0] = -1;
 		(*node)->next->fd[0] = fd[0];
 		// au premier node : on a set la sortie de cmd1 et l'entree de cmd2
 	}
@@ -372,33 +368,34 @@ int main(int ac, char **av, char **env)
 
     if (ac >= 5)
     {
-      init_data(&data, av, env);    
-      tmp = data;
-      while(tmp)
-      {
-      	if (tmp && tmp->next)
-          get_pipe(&tmp);
-        tmp->pid = fork();
-        if (tmp->pid == -1)
-            close_pipeline_free_exit(&data);
-        if (tmp->pid == 0)
-            parse_redirect_execute(&data, &tmp, av);
-        else
+        init_data(&data, av, env);    
+        tmp = data;
+        while(tmp)
         {
-        		if (tmp->fd[1] > 2)
-        			close(tmp->fd[1]);
-        		if (tmp && tmp->prev)
-            	close(tmp->prev->fd[0]);
+      			if (tmp && tmp->next)
+            	get_pipe(&tmp);
+            tmp->pid = fork();
+            if (tmp->pid == -1)
+                close_pipeline_free_exit(&data);
+            if (tmp->pid == 0)
+                parse_redirect_execute(&data, &tmp, av);
+            else
+            {
+        				wait_children(&data);
+        				/* if (tmp->fd[1] != 0 && tmp->fd[1] != 1 && tmp->fd[1] != 2 && tmp->fd[1]) */
+            /*     	close(tmp->fd[1]); */
+            /*     if (tmp->next) */
+            /*         close(tmp->next->fd[0]); */
+            }
+            tmp = tmp->next;
         }
-        tmp = tmp->next;
-      }
-      exit(wait_children(&data)); 
+        exit(wait_children(&data)); 
     }
     else 
     {
-    	ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
-    	free_data(&data);
-    	exit(1); // ou 1 ?
+        ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
+        free_data(&data);
+        exit(1); // ou 1 ?
     }
 }
 
