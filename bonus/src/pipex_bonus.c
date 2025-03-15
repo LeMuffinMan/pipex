@@ -72,6 +72,8 @@ int main(int ac, char **av, char **env)
         if (tmp->prev && tmp->prev->fd[0] > 2)
           close(tmp->prev->fd[0]);
       }
+      if (!tmp->next)
+        close(tmp->fd[0]);
       tmp = tmp->next;
     }
     exit(wait_children(&data)); 
