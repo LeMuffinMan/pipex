@@ -18,25 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int close_pipeline_free_exit(t_data **data)
-{
-	t_data *tmp;
-
-	tmp = *data;
-	while (tmp)
-	{
-		if (close(tmp->fd[0]) == -1 || close(tmp->fd[1]) == -1)
-		{
-			free_data(data);
-			perror("close"); // a mettre partout 
-			exit(1); 
-		}
-		tmp = tmp->next;
-	}
-	free_data(data);
-	return (0);
-}
-
 //revoir la doc !
 int wait_children(t_data **data)
 {
@@ -81,9 +62,9 @@ int	execute(t_strs *strs, t_data **data)
 	{
 		free_array(strs->args);
 		free(strs->path);
-		close_pipeline_free_exit(data);
-		perror("execve error");
-		exit(errno);
+		close((*tmp)->fd[0]);
+		close((*tmp)->prev->fd[0]);
+		free_data(data);
 	}
 	return (0);
 }
@@ -116,9 +97,6 @@ int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	}
 	else
 		error_cmd_not_found(data, tmp, &strs);
-	/* dprintf(2, "tmp->cmd = %s\n", (*tmp)->cmd); */
-	/* dprintf(2, "tmp->fd[0]: %d\n", (*tmp)->fd[0]); */
-	/* dprintf(2, "tmp->fd[1]: %d\n", (*tmp)->fd[1]); */
 	execute(&strs, tmp);
 	exit(0);
 }

@@ -20,14 +20,14 @@ int error_permission_denied(t_data **data, t_strs *strs)
 {
 	ft_putstr_fd("pipex: permission denied: ", 2);
 	perror("");
-	close_pipeline_free_exit(data);
 	free_array(strs->args);
 	free(strs->path);
-	close_pipeline_free_exit(data);
+	close((*tmp)->fd[0]);
+	close((*tmp)->prev->fd[0]);
+	free_data(data);
 	return (0);
 }
 
-//free toute la liste !!!
 //code d'erreur ?
 int error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
 {
@@ -51,6 +51,8 @@ int open_error(t_data **data, t_strs *strs)
 	perror("");
 	free_array(strs->args);
 	free(strs->path);
-	close_pipeline_free_exit(data);
-	exit(1); //exit 1 ?
+	close((*tmp)->fd[0]);
+	close((*tmp)->prev->fd[0]);
+	free_data(data);
+	exit(1); 
 }
