@@ -46,6 +46,17 @@
 //!! un fd qui reste open pour 3 cmds !!
 //!! pour 4 cmds : bad file descriptor
 
+//implementing here_doc 
+//init modifee
+//open un fichier a creer en ecriture
+//GNL sur STDIN pour recuperer des trucs a ecrire dans ce fichier
+//fermer ce fichier 
+//
+//Dans dup and close du premier cmd
+//on open ce fichier en lecture comme d'hab
+//on le close ET on l'unlink !
+//Dans la derniere commande 
+//on ecrit en append
 int main(int ac, char **av, char **env)
 {
   t_data *data;

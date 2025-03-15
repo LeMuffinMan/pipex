@@ -42,11 +42,15 @@ int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, 
     return (0);
 }
 
+//gerer open error !
 int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs, char **av)
 {
     int file;
 
-	file = open(get_last_arg(av), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (ft_strncmp(av[1], "here_doc", 8) == 0)
+		file = open(get_last_arg(av), O_WRONLY | O_CREAT | O_APPEND, 0644);
+	else
+		file = open(get_last_arg(av), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (dup2(file, STDOUT_FILENO) == -1)
 	{
 		close(file);
@@ -54,6 +58,8 @@ int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs,
 	}
 	(*tmp)->fd[1] = file;
 	close(file);
+	if (ft_strncmp(av[1], "here_doc", 8) == 0)
+		unlink(av[1]);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
 	{
 		close((*tmp)->fd[0]);

@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>  // open
+#include "libft.h"
 
 int free_data(t_data **data)
 {
@@ -89,6 +91,33 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	return (0);
 }
 
+int here_doc(char **av)
+{
+  int file;
+  char *line;
+	
+	file = open(av[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	while (1)
+	{
+		ft_putstr_fd("> ", STDOUT_FILENO);
+		line = get_next_line(STDIN_FILENO);
+		if (!line)
+		{
+			ft_putstr_fd("\n", STDOUT_FILENO);
+			break ;
+		}
+		if (ft_strncmp(line, av[2], ft_strlen(av[2])) == 0 && line[ft_strlen(av[2])] == '\n')
+		{
+			free(line);
+			break ;
+		}
+		ft_putstr_fd(line, file);
+		free(line);
+	}
+	close(file);
+	return (0);
+}
+
 int init_data(t_data **data, char **av, char **env)
 {
 	int i;
@@ -101,8 +130,17 @@ int init_data(t_data **data, char **av, char **env)
     //av[2] : le delimiter : tout decaller du coup !
     //bien mettre en append la derniere redir
   /* } */
-	add_first_node(data, av[2], env, av[1]);
-	i = 3;
+  if (ft_strncmp(av[1], "here_doc", 8) == 0)
+  {
+		here_doc(av);
+  	add_first_node(data, av[3], env, av[1]);
+  	i = 4;
+  }
+  else
+	{
+		add_first_node(data, av[2], env, av[1]);
+		i = 3;
+	}
 	while (av[i + 1])
 	{
 		add_node(data, av[i], env, av[i + 1]);
