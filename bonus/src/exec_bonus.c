@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exec.c                                             :+:      :+:    :+:   */
+/*   exec_bonus.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 13:24:42 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 13:32:05 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/15 17:00:28 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,89 +18,108 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* int	wait_children(int fd[2], pid_t pid1, pid_t pid2) */
-/* { */
-/* 	int	status; */
-/* 	int	exit_code; */
-/**/
-/* 	exit_code = EXIT_SUCCESS; */
-/* 	if (waitpid(pid1, &status, 0) == -1) */
-/* 		close_and_quit(fd, errno); */
-/* 	if (waitpid(pid2, &status, 0) == -1) */
-/* 		close_and_quit(fd, errno); */
-/* 	if (WIFEXITED(status)) */
-/* 		exit_code = WEXITSTATUS(status); */
-/* 	else if (WIFSIGNALED(status)) */
-/* 		exit_code = 128 + WTERMSIG(status); */
-/* 	if (exit_code == EXIT_SUCCESS && WIFEXITED(status)) */
-/* 		exit_code = WEXITSTATUS(status); */
-/* 	else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status)) */
-/* 		exit_code = 128 + WTERMSIG(status); */
-/* 	return (exit_code); */
-/* } */
+int close_pipeline_free_exit(t_data **data)
+{
+	t_data *tmp;
 
-/* int	parse_redirect_execute(t_data *data, int fd[2]) */
-/* { */
-/* 	char	*path; */
-/* 	char	**args; */
-/* 	char	*cmd; */
-/**/
-/* 	path = NULL; */
-/* 	if (data->pos == 0 && data->cmd1 != NULL) */
-/* 		cmd = data->cmd1; */
-/* 	else if (data->pos == 1 && data->cmd2 != NULL) */
-/* 		cmd = data->cmd2; */
-/* 	args = ft_split(cmd, ' '); */
-/* 	redirect_fd(data, fd, path, args); */
-/* 	if (!*args) */
-/* 		error_cmd_not_found(fd, args, NULL, NULL); */
-/* 	if (is_a_path(args[0])) */
-/* 		path = args[0]; */
-/* 	else */
-/* 	{ */
-/* 		path = get_binary(args[0], data->envp); */
-/* 		if (!path) */
-/* 			error_cmd_not_found(fd, args, NULL, NULL); */
-/* 	} */
-/* 	execute(path, args, data->envp); */
-/* 	return (0); */
-/* } */
+	tmp = *data;
+	while (tmp)
+	{
+		if (close(tmp->fd[0]) == -1 || close(tmp->fd[1]) == -1)
+		{
+			free_data(data);
+			perror("close"); // a mettre partout 
+			exit(1); 
+		}
+		tmp = tmp->next;
+	}
+	free_data(data);
+	return (0);
+}
 
-/* int	redirect_fd(t_data *data, int fd[2], char *path, char **args) */
-/* { */
-/* 	int	file; */
-/**/
-/* 	if (data->pos == 0) */
-/* 	{ */
-/* 		close(fd[0]); */
-/* 		file = open(data->infile, O_RDONLY); */
-/* 		if (file == -1) */
-/* 			open_error(fd[1], data->infile, path, args); */
-/* 		dup_and_close(fd[1], file, fd[1]); */
-/* 	} */
-/* 	else */
-/* 	{ */
-/* 		close(fd[1]); */
-/* 		file = open(data->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644); */
-/* 		if (file == -1) */
-/* 			open_error(fd[0], data->outfile, path, args); */
-/* 		dup_and_close(file, fd[0], fd[0]); */
-/* 	} */
-/* 	return (0); */
-/* } */
+//revoir la doc !
+int wait_children(t_data **data)
+{
+	int status;
+	int exit_code;
+	t_data *tmp;
 
-/* int	execute(char *binary, char **args, char **envp) */
-/* { */
-/* 	if (!binary || access(binary, F_OK) != 0) */
-		/* error_cmd_not_found(NULL, args, NULL, NULL); */
-/* 	if (access(binary, X_OK) != 0) */
-		/* error_permission_denied(args, binary); */
-/* 	if (execve(binary, args, envp) != 0) */
-/* 	{ */
-/* 		free_array(args); */
-/* 		free(binary); */
-/* 		perror("execve error"); */
-/* 		exit(errno); */
-/* 	} */
-/* 	return (0); */
-/* } */
+	tmp = *data;
+	exit_code = EXIT_SUCCESS;
+	while (tmp->next)
+	{
+		if (waitpid(tmp->pid, &status, 0) == -1)
+			close_pipeline_free_exit(data);
+		if (WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			exit_code = 128 + WTERMSIG(status);
+		if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
+		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
+			exit_code = 128 + WTERMSIG(status);
+		tmp = tmp->next;
+	}
+	free_data(data);
+	return (exit_code);
+}
+
+//gerer si on me donne PATH et pas d'env
+//free toute la liste !
+//il faut lui filer data pour qu'il puisse la free !
+int	execute(t_strs *strs, t_data **data)
+{
+	/* printf("executing cmd : %s\n", (*data)->cmd); */
+	if (!strs->path || access(strs->path, F_OK) != 0)
+		error_cmd_not_found(data, NULL, NULL);
+	if (access(strs->path, X_OK) != 0)
+		error_permission_denied(data, strs);
+	dprintf(2, "tmp->cmd = %s\n", (*data)->cmd);
+	dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]);
+	dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]);
+	if (execve(strs->path, strs->args, (*data)->env) != 0)
+	{
+		free_array(strs->args);
+		free(strs->path);
+		close_pipeline_free_exit(data);
+		perror("execve error");
+		exit(errno);
+	}
+	return (0);
+}
+
+//voir tous les tests chiants et securiser 
+//il faut free toute la liste !!
+int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
+{
+	t_strs strs;
+
+	//cas 1 : ls
+	//cas 2 : ls -l
+	//cas 3 : /usr/bin/ls
+	//cas 4 : /usr/bin/ls -l
+	//cas 5 : no env et /usr/bin/ls
+	//cas 5 : no PATH et /usr/bin/ls
+	//cas 5 : PATH empty et /usr/bin/ls
+	strs.path = NULL;
+	strs.args = ft_split((*tmp)->cmd, ' ');
+	if (!strs.args[0]) // empeche un segfautl pour une cmd "" ?
+		error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
+	redirect_stdin_stdout(tmp, data, &strs, av); //en cas d'erreur args a free !
+	if (is_a_path(strs.args[0]))
+		strs.path = strs.args[0];
+	else if ((*data)->env) // voir les cas possibles ici
+	{
+		strs.path = get_binary(strs.args[0], (*tmp)->env);
+		if (!strs.path) // avec ou sans * ? 
+			error_cmd_not_found(data, tmp, &strs);
+	}
+	else
+		error_cmd_not_found(data, tmp, &strs);
+	/* dprintf(2, "tmp->cmd = %s\n", (*tmp)->cmd); */
+	/* dprintf(2, "tmp->fd[0]: %d\n", (*tmp)->fd[0]); */
+	/* dprintf(2, "tmp->fd[1]: %d\n", (*tmp)->fd[1]); */
+	execute(&strs, tmp);
+	exit(0);
+}
+

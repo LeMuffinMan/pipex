@@ -1,27 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:28:27 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/15 17:27:33 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-// mettre un max fd dans l'include ?
-// dup2 et close a proteger ?
 
 #include "libft.h"
 #include "pipex_bonus.h"
-#include <errno.h>    // errno
-#include <fcntl.h>    // open
-#include <stdio.h>    // perror
 #include <stdlib.h>   // exit
-#include <string.h>   // strerror
-#include <sys/wait.h> // wait, waitpid
-#include <unistd.h>   // fork, pipe, dup2, execve, access, close, read, write
+#include <unistd.h>
 
 /// access(const char *pathname, int mode)
 ///- F_OK : file exists
@@ -35,342 +28,23 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-int free_data(t_data **data)
-{
-	t_data *tmp;
-	t_data *next_node;
+// TODO
+// Faire le here doc 
+// 		pas oublier de changer l'option append !!
+// 		revoir les options des open
+// pour toute erreur : verifier si je free tout data
+// verifier les protection des fonctions qui foirent 
+// verifier les segfault 
+// mettre un max fd dans l'include ?
 
-	tmp = *data;
-	if (!*data)
-		return (1);
-	while(tmp)
-	{
-		next_node = tmp->next;
-		free(tmp);
-		tmp = next_node;
-	}
-	*data = NULL;
-	return (0);
-}
-
-//securiser et free toute la liste !
-int add_first_node(t_data **data, char *cmd, char **env, char *infile)
-{
-	t_data *node;
-
-	node = malloc(sizeof(t_data));
-	if (node == NULL)
-	{
-		free_data(data);
-		perror("malloc");
-		exit(1); //choisir 1 ou exit_failure
-	}
-	*data = node;
-	node->file = infile;
-	node->cmd = cmd;
-	node->env = env;
-	node->next = NULL;
-	node->prev = NULL;
-	node->fd[0] = -1;
-	node->fd[1] = -1;
-	return (0);
-}
-
-//securiser et free toute la liste !
-int add_node(t_data **data, char *cmd, char **env, char *last_arg)
-{
-	t_data *node;
-	t_data *tmp;
-
-	node = NULL;
-	node = malloc(sizeof(t_data));
-	if (node == NULL)
-	{
-		free_data(data);
-		perror("malloc");
-		exit(1);
-	}
-	tmp = *data;
-	while (tmp->next)
-		tmp = tmp->next;
-	tmp->next = node;
-	node->prev = tmp;
-	if (*last_arg)
-		node->file = last_arg;
-	else
-		node->file = NULL;
-	node->cmd = cmd;
-	node->env = env;
-	node->next = NULL;
-	node->fd[0] = -1;
-	node->fd[1] = -1;
-	return (0);
-}
-
-int init_data(t_data **data, char **av, char **env)
-{
-	int i;
-
-	add_first_node(data, av[2], env, av[1]);
-	i = 3;
-	while (av[i + 1])
-	{
-		add_node(data, av[i], env, av[i + 1]);
-		i++;
-	}
-	return (0);
-}
-
-
-
-int close_pipeline_free_exit(t_data **data)
-{
-	t_data *tmp;
-
-	tmp = *data;
-	while (tmp)
-	{
-		if (close(tmp->fd[0]) == -1 || close(tmp->fd[1]) == -1)
-		{
-			free_data(data);
-			perror("close"); // a mettre partout 
-			exit(1); 
-		}
-		tmp = tmp->next;
-	}
-	free_data(data);
-	return (0);
-}
-
-char *get_last_arg(char **av)
-{
-	int i;
-
-	i = 0;
-	while (av[i])
-		i++;
-	return (av[i - 1]);
-}
-
-//revoir la doc !
-int wait_children(t_data **data)
-{
-	int status;
-	int exit_code;
-	t_data *tmp;
-
-	tmp = *data;
-	exit_code = EXIT_SUCCESS;
-	while (tmp->next)
-	{
-		if (waitpid(tmp->pid, &status, 0) == -1)
-			close_pipeline_free_exit(data);
-		if (WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			exit_code = 128 + WTERMSIG(status);
-		if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
-		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
-			exit_code = 128 + WTERMSIG(status);
-		tmp = tmp->next;
-	}
-	free_data(data);
-	return (exit_code);
-}
-
-
-int error_permission_denied(t_data **data, t_strs *strs)
-{
-	ft_putstr_fd("pipex: permission denied: ", 2);
-	perror("");
-	close_pipeline_free_exit(data);
-	free_array(strs->args);
-	free(strs->path);
-	return (0);
-}
-
-//free toute la liste !!!
-//code d'erreur ?
-int error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
-{
-	ft_putstr_fd("pipex: command not found: ", 2);
-	if ((*tmp)->cmd)
-		ft_putstr_fd((*tmp)->cmd, 2); // a verifier ! donne la bonne cmd en avancant le ptr ?
-	ft_putstr_fd("\n", 2); // PAS SUUUUUR !
-	if (strs->args)
-		free_array(strs->args);
-	if (strs->path)
-		free(strs->path);
-	close_pipeline_free_exit(data);
-	exit(127);
-}
-
-int open_error(t_data **data, t_strs *strs)
-{
-	ft_putstr_fd("pipex: open error: ", 2);
-	perror("");
-	free_array(strs->args);
-	free(strs->path);
-	close_pipeline_free_exit(data);
-	exit(1); //exit 1 ?
-}
-
-
-//gerer si on me donne PATH et pas d'env
-//free toute la liste !
-//il faut lui filer data pour qu'il puisse la free !
-int	execute(t_strs *strs, t_data **data)
-{
-	/* printf("executing cmd : %s\n", (*data)->cmd); */
-	if (!strs->path || access(strs->path, F_OK) != 0)
-		error_cmd_not_found(data, NULL, NULL);
-	if (access(strs->path, X_OK) != 0)
-		error_permission_denied(data, strs);
-	dprintf(2, "tmp->cmd = %s\n", (*data)->cmd);
-	dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]);
-	dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]);
-	if (execve(strs->path, strs->args, (*data)->env) != 0)
-	{
-		free_array(strs->args);
-		free(strs->path);
-		close_pipeline_free_exit(data);
-		perror("execve error");
-		exit(errno);
-	}
-	return (0);
-}
-
-//free toute la liste
-//gerer open error 
-int redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
-{
-	int file;
-    // infile case
-    if (ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0)
-    {
-      file = open(av[1], O_RDONLY);
-			if (dup2(file, STDIN_FILENO) == -1)
-      {
-          close(file);
-          open_error(data, strs);
-      }
-    	close((*tmp)->fd[0]);
-    	(*tmp)->fd[0] = file;
-			close(file);
-      if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
-      {
-          close((*tmp)->fd[1]);
-          open_error(data, strs);
-      }
-      close((*tmp)->fd[1]);
-      return (0);
-    }
-    // outfile case
-    if (ft_strncmp((*tmp)->file, get_last_arg(av), ft_strlen((*tmp)->file)) == 0)
-    {
-        file = open(get_last_arg(av), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				if (dup2(file, STDOUT_FILENO) == -1)
-      	{
-          	close(file);
-          	open_error(data, strs);
-      	}
-    		(*tmp)->fd[1] = file;
-        close(file);
-        if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
-        {
-            close((*tmp)->fd[0]);
-            open_error(data, strs);
-        }
-        close((*tmp)->fd[0]);
-        return (0);
-    }
-    // pipe to pipe case
-    if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
-    {
-        close((*tmp)->fd[1]);
-        open_error(data, strs);
-    }
-    close((*tmp)->fd[1]);
-    if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
-    {
-        close((*tmp)->fd[0]);
-        open_error(data, strs);
-    }
-    close((*tmp)->fd[0]);
-    return (0);
-}
-
-
-
-//voir tous les tests chiants et securiser 
-//il faut free toute la liste !!
-int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
-{
-	t_strs strs;
-
-	//cas 1 : ls
-	//cas 2 : ls -l
-	//cas 3 : /usr/bin/ls
-	//cas 4 : /usr/bin/ls -l
-	//cas 5 : no env et /usr/bin/ls
-	//cas 5 : no PATH et /usr/bin/ls
-	//cas 5 : PATH empty et /usr/bin/ls
-	if ((*tmp)->file)
-		/* printf("file = %s\n", (*tmp)->file); */
-	/* printf("cmd = %s\n", (*tmp)->cmd); */
-	strs.path = NULL;
-	strs.args = ft_split((*tmp)->cmd, ' ');
-	/* printf("args[0] = %s\n", strs.args[0]); */
-	if (!strs.args[0]) // empeche un segfautl pour une cmd "" ?
-		error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
-	redirect_stdin_stdout(tmp, data, &strs, av); //en cas d'erreur args a free !
-	if (is_a_path(strs.args[0]))
-		strs.path = strs.args[0];
-	else if ((*data)->env) // voir les cas possibles ici
-	{
-		strs.path = get_binary(strs.args[0], (*tmp)->env);
-		if (!strs.path) // avec ou sans * ? 
-			error_cmd_not_found(data, tmp, &strs);
-	}
-	else
-		error_cmd_not_found(data, tmp, &strs);
-	/* dprintf(2, "tmp->cmd = %s\n", (*tmp)->cmd); */
-	/* dprintf(2, "tmp->fd[0]: %d\n", (*tmp)->fd[0]); */
-	/* dprintf(2, "tmp->fd[1]: %d\n", (*tmp)->fd[1]); */
-	execute(&strs, tmp);
-	exit(0);
-}
-
-int get_pipe(t_data **node)
-{
-	int fd[2];
-
-	if (pipe(fd) == -1)
-	{
-		perror("pipe");
-		exit (EXIT_FAILURE);
-	}
-	dprintf(2, "fd[0] = %d\n", fd[0]);
-	dprintf(2, "fd[1] = %d\n", fd[1]);
-	// si on est sur la premiere cmd
-	if (node && !(*node)->prev)
-	{
-		(*node)->fd[1] = fd[1];
-		(*node)->fd[0] = fd[0];
-		(*node)->next->fd[0] = fd[0];
-		// au premier node : on a set la sortie de cmd1 et l'entree de cmd2
-	}
-	//si on est PAS ENCORE sur la derniere
-	else if (node && (*node)->next)
-	{
-		(*node)->next->fd[0] = fd[0];
-		(*node)->fd[1] = fd[1];
-	}
-	return (0);
-}
-
+/// proteger is infile ou outfile est /dev/urandom
+/// here_doc : limiter = EOF et pas EOFa
+////bin/ls comme cmd
+// si on supprime que la ligne PATH ?
+// env -i / unset PATH ?
 //seg fault si cmd 3 est ""
+//!! un fd qui reste open pour 3 cmds !!
+//!! pour 4 cmds : bad file descriptor
 int main(int ac, char **av, char **env)
 {
   t_data *data;
@@ -392,9 +66,9 @@ int main(int ac, char **av, char **env)
           parse_redirect_execute(&data, &tmp, av);
       else
       {
-        	if (tmp->fd[1] > 2)
+        	if (tmp && tmp->fd[1] > 2)
         		close(tmp->fd[1]);
-        	if (tmp->prev)
+        	if (tmp->prev && tmp->fd[0] > 2)
             close(tmp->prev->fd[0]);
       }
       tmp = tmp->next;
@@ -405,21 +79,7 @@ int main(int ac, char **av, char **env)
   {
     ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
     free_data(&data);
-    exit(1); // ou 1 ?
+    exit(1);
   }
 }
-
-// si on supprime que la ligne PATH ?
-// env -i / unset PATH ?
-//
-// tout proteger e
-// 	- verifier si on free tout en sortant
-
-/// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
-/// infile cat | cat | ls outfile
-////bin/ls comme cmd
-/// proteger is infile ou outfile est /dev/urandom
-/// here_doc : limiter = EOF et pas EOFa
-///
-///
 

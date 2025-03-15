@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parsing.c                                          :+:      :+:    :+:   */
+/*   parsing_bonus.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:23:06 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:27:56 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/15 17:42:57 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ char	**get_paths(char **envp)
 	if (!path_line)
 	{
 		write(2, "path_line not found\n", 20);
-		exit (1);
+		exit (1); // proteger
 	}
 	paths = ft_split(path_line, ':');
 	return (paths);
@@ -102,6 +102,7 @@ char	*get_binary(char *cmd, char **envp)
 	if (!paths)
 	{
 		perror("get paths");
+		//free la liste 
 		return (NULL);
 	}
 	args = ft_split(cmd, ' ');

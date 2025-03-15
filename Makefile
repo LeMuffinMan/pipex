@@ -6,7 +6,7 @@
 #    By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#              #
-#    Updated: 2025/03/08 15:24:43 by oelleaum         ###   ########lyon.fr    #
+#    Updated: 2025/03/15 16:07:15 by oelleaum         ###   ########lyon.fr    #
 #                                                                              #
 # **************************************************************************** #
 
@@ -89,6 +89,7 @@ BONUS_SRC_FILES = \
     bonus/src/init_bonus.c \
     bonus/src/parsing_bonus.c \
     bonus/src/pipex_bonus.c \
+    bonus/src/fd_management_bonus.c \
     bonus/src/utils_bonus.c
 
 BONUS_OBJ_FILES = $(addprefix $(BONUS_OBJ_DIR)/, $(subst bonus/src/, , $(BONUS_SRC_FILES:.c=.o)))

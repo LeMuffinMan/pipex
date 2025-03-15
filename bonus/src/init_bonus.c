@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   init.c                                             :+:      :+:    :+:   */
+/*   init_bonus.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:18:38 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:27:59 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/15 17:27:57 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,80 +17,106 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-/* t_data	add_first_node(char **av, char **envp) */
-/* { */
-/* 	t_data	*node; */
-/* 	pid_t	pid; */
-/* 	int		fd[2]; */
-/**/
-/* 	if (pipe(fd) == -1) */
-/* 	{ */
-/* 		perror("pipe"); */
-/* 		exit(errno); */
-/* 	} */
-/* 	close (fd[1]); // ou l'autre ? */
-/* 	node = malloc(sizeof(t_data)); */
-/* 	if (node == NULL) */
-/* 	{ */
-/* 		// exit proprement */
-/* 	} */
-/* 	node->fd_in = NULL; */
-/* 	node->fd_out = fd[0]; // fd[0] ou fd[1] */
-/* 	node->envp = envp; */
-/* 	node->av = av; */
-/* 	node->pid = pid; */
-/* 	node->next = NULL; */
-/* 	return (node); */
-/* } */
-/**/
-/* int add_node(t_data **data, char **av, int i, char **envp) */
-/* { */
-/* 	t_data *tmp; */
-/* 	t_data node; */
-/* 	pid_t	pid; */
-/* 	int		fd[2]; */
-/**/
-/* 	if (pipe(fd) == -1) */
-/* 	{ */
-/* 		perror("pipe"); */
-/* 		exit(errno); */
-/* 	} */
-/* 	node = malloc(sizeof(t_data)); */
-/* 	if (node == NULL) */
-/* 	{ */
-/* 		// exit proprement */
-/* 	} */
-/* 	tmp = *data; */
-/* 	while (tmp->next) */
-/* 		tmp = tmp->next; */
-/* 	tmp->next = node; */
-/* 	node->fd_in = fd[1]; */
-/* 	node->fd_out = fd[0]; // fd[0] ou fd[1] */
-/* 	node->envp = envp; */
-/* 	node->av = av; */
-/* 	node->pid = pid; */
-/* 	node->next = NULL; */
-/* 	if (!av[i + 2]) */
-/* 	{ */
-/* 		close (fd[0]); */
-/* 		node->fd_out = NULL; */
-/* 		return (0); */
-/* 	} */
-/* 	else  */
-/* 		return (1); */
-/* } */
-/**/
-/* t_data	*init(int ac, char **av, char **envp) */
-/* { */
-/* 	int		i; */
-/* 	t_data	*data; */
-/**/
-/* 	// revoir ac != 5 */
-/* 	if (ac != 5 || !*(data)->envp) */
-/* 		exit(errno); */
-/* 	data = add_first_node(av, envp); */
-/* 	i = 3; */
-/* 	while (add_node(&data, av, i, envp)) */
-/* 		i++; */
-/* 	return (0); */
-/* } */
+int free_data(t_data **data)
+{
+	t_data *tmp;
+	t_data *next_node;
+
+	tmp = *data;
+	if (!*data)
+		return (1);
+	while(tmp)
+	{
+		next_node = tmp->next;
+		free(tmp);
+		tmp = next_node;
+	}
+	*data = NULL;
+	return (0);
+}
+
+//securiser et free toute la liste !
+int add_first_node(t_data **data, char *cmd, char **env, char *infile)
+{
+	t_data *node;
+
+	node = malloc(sizeof(t_data));
+	if (node == NULL)
+	{
+		free_data(data);
+		perror("malloc");
+		exit(1); //choisir 1 ou exit_failure
+	}
+	*data = node;
+	node->file = infile;
+	node->cmd = cmd;
+	node->env = env;
+	node->next = NULL;
+	node->prev = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
+	return (0);
+}
+
+//securiser et free toute la liste !
+int add_node(t_data **data, char *cmd, char **env, char *last_arg)
+{
+	t_data *node;
+	t_data *tmp;
+
+	node = NULL;
+	node = malloc(sizeof(t_data));
+	if (node == NULL)
+	{
+		free_data(data);
+		perror("malloc");
+		exit(1);
+	}
+	tmp = *data;
+	while (tmp->next)
+		tmp = tmp->next;
+	tmp->next = node;
+	node->prev = tmp;
+	if (*last_arg)
+		node->file = last_arg;
+	else
+		node->file = NULL;
+	node->cmd = cmd;
+	node->env = env;
+	node->next = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
+	return (0);
+}
+
+int init_data(t_data **data, char **av, char **env)
+{
+	int i;
+
+  /* if (ft_strncmp(av[1], "here_doc", 8) == 0) */
+  /* { */
+    //creer un fichier temp / le supprimer avec unlink
+    //infile devient ce fichier temporaire
+     //on attend qu'il ait finit de parler, puis ont suit la meme procedure
+    //av[2] : le delimiter : tout decaller du coup !
+    //bien mettre en append la derniere redir
+  /* } */
+	add_first_node(data, av[2], env, av[1]);
+	i = 3;
+	while (av[i + 1])
+	{
+		add_node(data, av[i], env, av[i + 1]);
+		i++;
+	}
+	return (0);
+}
+
+char *get_last_arg(char **av)
+{
+	int i;
+
+	i = 0;
+	while (av[i])
+		i++;
+	return (av[i - 1]);
+}
