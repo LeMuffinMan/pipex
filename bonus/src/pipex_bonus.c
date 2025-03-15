@@ -28,35 +28,17 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-// TODO
-// Faire le here doc 
-// 		pas oublier de changer l'option append !!
-// 		revoir les options des open
+//retester la mandatory
+//reecrire mandatory
+
 // pour toute erreur : verifier si je free tout data
 // verifier les protection des fonctions qui foirent 
-// verifier les segfault 
 // mettre un max fd dans l'include ?
 
 /// proteger is infile ou outfile est /dev/urandom
-/// here_doc : limiter = EOF et pas EOFa
-////bin/ls comme cmd
+//bin/ls comme cmd
 // si on supprime que la ligne PATH ?
 // env -i / unset PATH ?
-//seg fault si cmd 3 est ""
-//!! un fd qui reste open pour 3 cmds !!
-//!! pour 4 cmds : bad file descriptor
-
-//implementing here_doc 
-//init modifee
-//open un fichier a creer en ecriture
-//GNL sur STDIN pour recuperer des trucs a ecrire dans ce fichier
-//fermer ce fichier 
-//
-//Dans dup and close du premier cmd
-//on open ce fichier en lecture comme d'hab
-//on le close ET on l'unlink !
-//Dans la derniere commande 
-//on ecrit en append
 int main(int ac, char **av, char **env)
 {
   t_data *data;

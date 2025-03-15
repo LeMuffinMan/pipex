@@ -39,7 +39,9 @@ int error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
 		free_array(strs->args);
 	if (strs->path)
 		free(strs->path);
-	close_pipeline_free_exit(data);
+	close((*tmp)->fd[0]);
+	close((*tmp)->prev->fd[0]);
+	free_data(data);
 	exit(127);
 }
 
