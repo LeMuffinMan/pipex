@@ -45,6 +45,7 @@
 //seg fault si cmd 3 est ""
 //!! un fd qui reste open pour 3 cmds !!
 //!! pour 4 cmds : bad file descriptor
+
 int main(int ac, char **av, char **env)
 {
   t_data *data;
@@ -66,10 +67,10 @@ int main(int ac, char **av, char **env)
           parse_redirect_execute(&data, &tmp, av);
       else
       {
-        	if (tmp && tmp->fd[1] > 2)
-        		close(tmp->fd[1]);
-        	if (tmp->prev && tmp->fd[0] > 2)
-            close(tmp->prev->fd[0]);
+        if (tmp && tmp->fd[1] > 2)
+        	close(tmp->fd[1]);
+        if (tmp->prev && tmp->prev->fd[0] > 2)
+          close(tmp->prev->fd[0]);
       }
       tmp = tmp->next;
     }

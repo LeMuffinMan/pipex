@@ -29,7 +29,8 @@ int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, 
 	    close(file);
 	    open_error(data, strs);
     }
-    close((*tmp)->fd[0]);
+  	if ((*tmp)->fd[0] > 2)
+    	close((*tmp)->fd[0]);
     (*tmp)->fd[0] = file;
     close(file);
     if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
@@ -107,7 +108,7 @@ int	get_pipe(t_data **node)
 	if (node && !(*node)->prev)
 	{
 		(*node)->fd[1] = fd[1];
-		(*node)->fd[0] = fd[0];
+		(*node)->fd[0] = -1;
 		(*node)->next->fd[0] = fd[0];
 		dprintf(2, "cmd1 : %s will write in fd %d\n", (*node)->cmd, (*node)->fd[1]);
 		dprintf(2, "cmd2 : %s wait input from fd %d\n\n", (*node)->next->cmd, (*node)->next->fd[0]);
