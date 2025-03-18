@@ -25,6 +25,7 @@ char	*get_path_line(char **envp)
 	path_line = NULL;
 	while (envp[i])
 	{
+		//tip de Coralie : on cherche la longueur jusqu'au = ?
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5)
 		{
 			path_line = envp[i] + 5;
@@ -41,7 +42,7 @@ char	*join_full_path(char *binary, char *cmd, char *path)
 	int	j;
 
 	binary = malloc(sizeof(char) * ft_strlen(path) + ft_strlen(cmd) + 2);
-	if (!binary)
+	if (binary == NULL)
 		return (NULL);
 	i = 0;
 	while (path[i])
@@ -84,10 +85,7 @@ char	**get_paths(char **envp)
 	paths = NULL;
 	path_line = get_path_line(envp);
 	if (!path_line)
-	{
-		write(2, "path_line not found\n", 20);
-		exit (1); // proteger
-	}
+		ft_putstr_fd("path_line not found\n", 2); // comment on gere le cas ou le path a pas ete trouve ?
 	paths = ft_split(path_line, ':');
 	return (paths);
 }
@@ -99,17 +97,18 @@ char	*get_binary(char *cmd, char **envp)
 	char	*binary;
 
 	paths = get_paths(envp);
-	if (!paths)
+	if (paths == NULL)
 	{
-		perror("get paths");
-		//free la liste 
-		return (NULL);
+		ft_putstr_fd("path_line not found\n", 2); // comment on gere le cas ou le path a pas ete trouve ?
+		// on Fait quoi si on a trouve 0 path line ?
+		/* return (NULL); */
 	}
 	args = ft_split(cmd, ' ');
 	if (!args)
 	{
-		free_array(paths);
-		perror("args");
+		//Pareil on fait quoi si on n'a pas d'args ni de cmd ?
+		/* free_array(paths); */
+		/* perror("args"); */
 		return (NULL);
 	}
 	binary = which_cmd(paths, args[0]);

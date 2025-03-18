@@ -49,10 +49,9 @@ int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary)
 
 int	error_permission_denied(char **args, char *binary)
 {
-	write(2, "pipex: ", 7);
-	write(2, "permission denied: ", 19);
+	ft_putstr_fd("pipex: permission denied: ", 2);
 	perror("");
 	free_array(args);
 	free(binary);
-	exit(126);
+	exit(1);
 }

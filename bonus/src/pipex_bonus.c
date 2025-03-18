@@ -15,6 +15,7 @@
 #include "pipex_bonus.h"
 #include <stdlib.h>   // exit
 #include <unistd.h>
+#include <errno.h>
 
 /// access(const char *pathname, int mode)
 ///- F_OK : file exists
@@ -43,9 +44,7 @@ int main(int ac, char **av, char **env)
 {
   t_data *data;
   t_data *tmp;
-  int exit_code;
 
-  exit_code = -1;
 	data = NULL;
   if (ac >= 5)
   {
@@ -54,10 +53,10 @@ int main(int ac, char **av, char **env)
     while(tmp)
     {
       if (tmp && tmp->next)
-        get_pipe(&tmp);
+        get_pipe(&tmp, &data);
       tmp->pid = fork();
       if (tmp->pid == -1)
-        close_pipe_free_exit(&data, &exit_code);
+        print_errors(&data, NULL, "fork: ", -1); // voir si errno marche partout comme on veut 
       if (tmp->pid == 0)
           parse_redirect_execute(&data, &tmp, av);
       else
@@ -81,3 +80,14 @@ int main(int ac, char **av, char **env)
   }
 }
 
+//pipex: infile: pipex: command not found: lgs==43201== Warning: invalid file descriptor -1 in syscall close()
+
+/* oelleaum@z2r5p6:~/GitPerso/pipex$ ./pipex_bonus infile "echo 'hello'" "sudo apt update" outfile */
+/* new pipe : in = 4 out = 3 */
+/* cmd1 : echo 'hello' will write in fd 4 */
+/* cmd2 : sudo apt update wait input from fd 3 */
+/**/
+/* pipex: open error: Bad file descriptor */
+/* pipex: command not found: sudo apt update */
+/* oelleaum@z2r5p6:~/GitPerso/pipex$ echo $? */
+/* 139 */

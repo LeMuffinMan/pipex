@@ -29,8 +29,7 @@ int wait_children(t_data **data)
 	exit_code = EXIT_SUCCESS;
 	while (tmp->next)
 	{
-		if (waitpid(tmp->pid, &status, 0) == -1)
-			close_pipe_free_exit(data, NULL); // pas envoyer null en exit code 
+		waitpid(tmp->pid, &status, 0);
 		if (WIFEXITED(status))
 			exit_code = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
@@ -50,28 +49,26 @@ int wait_children(t_data **data)
 //il faut lui filer data pour qu'il puisse la free !
 int	execute(t_strs *strs, t_data **data)
 {
+	int exit_code;
 	/* printf("executing cmd : %s\n", (*data)->cmd); */
-	if (!strs->path || access(strs->path, F_OK) != 0)
-		error_cmd_not_found(data, NULL, NULL);
-	if (access(strs->path, X_OK) != 0)
-		error_permission_denied(data, strs);
-	dprintf(2, "tmp->cmd = %s\n", (*data)->cmd);
-	dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]);
-	dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]);
-	if (execve(strs->path, strs->args, (*data)->env) != 0)
-	{
-		free_array(strs->args);
-		free(strs->path);
-		close((*data)->fd[0]);
-		close((*data)->prev->fd[0]);
-		free_data(data);
-	}
+	exit_code = access(strs->path, F_OK);
+	if (!strs->path || exit_code != 0)
+		print_errors(data, NULL, "command not found: ", 127);
+	exit_code = access(strs->path, X_OK);
+	if (exit_code != 0)
+		print_errors(data, strs, "permission denied: ", 126);
+	/* dprintf(2, "tmp->cmd = %s\n", (*data)->cmd); */
+	/* dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]); */
+	/* dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]); */
+	exit_code = execve(strs->path, strs->args, (*data)->env);
+	if (exit_code != 0)
+		print_errors(data, strs, "execve: ", 0);
 	return (0);
 }
 
 //voir tous les tests chiants et securiser 
 //il faut free toute la liste !!
-int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
+void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
 	t_strs strs;
 
@@ -97,7 +94,6 @@ int parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	}
 	else
 		error_cmd_not_found(data, tmp, &strs);
-	execute(&strs, tmp);
-	exit(0);
+	execute(&strs, data);
 }
 

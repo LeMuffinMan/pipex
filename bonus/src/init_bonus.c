@@ -37,18 +37,13 @@ int free_data(t_data **data)
 	return (0);
 }
 
-//securiser et free toute la liste !
 int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
 	t_data *node;
 
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
-	{
-		free_data(data);
-		perror("malloc");
-		exit(1); //choisir 1 ou exit_failure
-	}
+		malloc_error(data);
 	*data = node;
 	node->file = infile;
 	node->cmd = cmd;
@@ -60,7 +55,6 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	return (0);
 }
 
-//securiser et free toute la liste !
 int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 {
 	t_data *node;
@@ -69,11 +63,7 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	node = NULL;
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
-	{
-		free_data(data);
-		perror("malloc");
-		exit(1);
-	}
+		malloc_error(data);
 	tmp = *data;
 	while (tmp->next)
 		tmp = tmp->next;
@@ -97,6 +87,11 @@ int here_doc(char **av)
   char *line;
 	
 	file = open(av[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (file == -1)
+	{
+		ft_putstr_fd("pipex: open error: ", 2);
+		perror("");
+	}
 	while (1)
 	{
 		ft_putstr_fd("> ", STDOUT_FILENO);

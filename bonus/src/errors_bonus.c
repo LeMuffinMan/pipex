@@ -15,45 +15,38 @@
 #include "libft.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
-int error_permission_denied(t_data **data, t_strs *strs)
+void print_errors(t_data **data, t_strs *strs, char *message, int error_code)
 {
-	ft_putstr_fd("pipex: permission denied: ", 2);
+	ft_putstr_fd("pipex: ", 2);
+	ft_putstr_fd(message, 2);
 	perror("");
-	free_array(strs->args);
-	free(strs->path);
-	close_pipe_free_exit(data, NULL);
-	return (0);
+	close_pipe_free_exit(data, strs, error_code);
 }
 
-//code d'erreur ?
-int error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
+void error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
 {
-	int exit_code;
-
-	exit_code = 127;
 	ft_putstr_fd("pipex: command not found: ", 2);
 	if ((*tmp)->cmd)
-		ft_putstr_fd((*tmp)->cmd, 2); // a verifier ! donne la bonne cmd en avancant le ptr ?
-	ft_putstr_fd("\n", 2); // PAS SUUUUUR !
-	if (strs->args)
-		free_array(strs->args);
-	if (strs->path)
-		free(strs->path);
-	close_pipe_free_exit(data, &exit_code);
-	return (0);
+		ft_putstr_fd((*tmp)->cmd, 2);
+	close_pipe_free_exit(data, strs, 127); //127 ou errno ?
 }
 
-int open_error(t_data **data, t_strs *strs)
+void malloc_error(t_data **data)
 {
-	int exit_code;
-
-	exit_code = 1;
-	ft_putstr_fd("pipex: open error: ", 2);
+	ft_putstr_fd("pipex: malloc error: ", 2);
 	perror("");
-	free_array(strs->args);
-	free(strs->path);
-	close_pipe_free_exit(data, &exit_code);
-	//pas exit  1 !! quel code d'erreur renvoie open ?
-	return (0);
+	free_data(data);
+	exit(errno);
 }
+
+void open_error(t_data **data, t_strs *strs, char *file)
+{
+	ft_putstr_fd("pipex: ", 2);
+	ft_putstr_fd(file, 2);
+	ft_putstr_fd(": ", 2);
+	perror("");
+	close_pipe_free_exit(data, strs, errno);
+}
+

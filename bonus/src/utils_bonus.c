@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "pipex_bonus.h"
+#include "libft.h"
+#include <stdio.h>  // perror
 
 int	is_a_path(char *s)
 {
@@ -44,15 +46,21 @@ void	free_array(char **s)
 	free(s);
 }
 
-int close_pipe_free_exit(t_data **data, int *exit_code)
+int close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
 {
+	if (strs->args)
+		free_array(strs->args);
+	if (strs->path)
+		free(strs->path);
 	if ((*data)->fd[0])
 		close((*data)->fd[0]);
-	if ((*data)->prev->fd[1])
+	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1])
 		close((*data)->prev->fd[1]);
 	free_data(data);
-	if (exit_code != NULL)
-		exit(*exit_code);
+	if (exit_code == 0)
+		exit(errno);
+	else
+		exit(exit_code);
 	return (0);
 }
 
