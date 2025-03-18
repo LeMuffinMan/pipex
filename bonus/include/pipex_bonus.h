@@ -70,5 +70,6 @@ char	*get_path_line(char **envp);
 //utils.c
 void	free_array(char **s);
 int	is_a_path(char *s);
+int close_pipe_free_exit(t_data **data, int *exit_code);
 
 #endif

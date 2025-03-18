@@ -43,7 +43,9 @@ int main(int ac, char **av, char **env)
 {
   t_data *data;
   t_data *tmp;
+  int exit_code;
 
+  exit_code = -1;
 	data = NULL;
   if (ac >= 5)
   {
@@ -55,7 +57,7 @@ int main(int ac, char **av, char **env)
         get_pipe(&tmp);
       tmp->pid = fork();
       if (tmp->pid == -1)
-          close_pipeline_free_exit(&data);
+        close_pipe_free_exit(&data, &exit_code);
       if (tmp->pid == 0)
           parse_redirect_execute(&data, &tmp, av);
       else

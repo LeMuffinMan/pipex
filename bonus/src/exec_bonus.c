@@ -30,7 +30,7 @@ int wait_children(t_data **data)
 	while (tmp->next)
 	{
 		if (waitpid(tmp->pid, &status, 0) == -1)
-			close_pipeline_free_exit(data);
+			close_pipe_free_exit(data, NULL); // pas envoyer null en exit code 
 		if (WIFEXITED(status))
 			exit_code = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
@@ -62,8 +62,8 @@ int	execute(t_strs *strs, t_data **data)
 	{
 		free_array(strs->args);
 		free(strs->path);
-		close((*tmp)->fd[0]);
-		close((*tmp)->prev->fd[0]);
+		close((*data)->fd[0]);
+		close((*data)->prev->fd[0]);
 		free_data(data);
 	}
 	return (0);

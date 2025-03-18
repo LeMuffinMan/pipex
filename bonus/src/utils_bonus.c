@@ -14,6 +14,7 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <errno.h>
+#include "pipex_bonus.h"
 
 int	is_a_path(char *s)
 {
@@ -42,3 +43,16 @@ void	free_array(char **s)
 	}
 	free(s);
 }
+
+int close_pipe_free_exit(t_data **data, int *exit_code)
+{
+	if ((*data)->fd[0])
+		close((*data)->fd[0]);
+	if ((*data)->prev->fd[1])
+		close((*data)->prev->fd[1]);
+	free_data(data);
+	if (exit_code != NULL)
+		exit(*exit_code);
+	return (0);
+}
+
