@@ -12,34 +12,14 @@
 
 
 #include "libft.h"
-#include "pipex_bonus.h"
-#include <stdlib.h>   // exit
+#include "pipex.h"
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 
-/// access(const char *pathname, int mode)
-///- F_OK : file exists
-///- R_OK : readable
-///- W_OK : writable
-///- X_OK : executable
-///
-/// errno : variable globale qui stock le dernier code d'erreur de l'appel
-/// systeme echoue
-/// strerror a la place ?
-///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-//retester la mandatory
-//reecrire mandatory
-
-// pour toute erreur : verifier si je free tout data
-// verifier les protection des fonctions qui foirent 
-// mettre un max fd dans l'include ?
-
 /// proteger is infile ou outfile est /dev/urandom
-//bin/ls comme cmd
-// si on supprime que la ligne PATH ?
-// env -i / unset PATH ?
 int main(int ac, char **av, char **env)
 {
   t_data *data;
@@ -97,7 +77,4 @@ int main(int ac, char **av, char **env)
 /* 139 */
 
 
-/* valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --show-mismatched-frees=yes --track-fds=yes --trace-children=yes env -i ./pipex_bonus infile "cat" "cat"  outfile */
-// des still reachables dans les deux childs 
-// 2 free manquants mais pas de definitely lost ?
-// dans les deux childs
+

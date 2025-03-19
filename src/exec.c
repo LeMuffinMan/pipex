@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "libft.h"
-#include "pipex_bonus.h"
+#include "pipex.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>

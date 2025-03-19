@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex_bonus.h"
+#include "pipex.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -17,22 +17,22 @@
 #include <stdio.h>
 #include <errno.h>
 
-void print_errors(t_data **data, t_strs *strs, char *message, int error_code)
+void print_errors(t_data **data, char *message, int error_code)
 {
 	ft_putstr_fd("pipex: ", 2);
 	ft_putstr_fd(message, 2);
 	perror("");
-	close_pipe_free_exit(data, strs, error_code);
+	close_pipe_free_exit(data, NULL, error_code);
 }
 
-void error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
+void error_cmd_not_found(t_data **data, t_data **tmp)
 {
 	ft_putstr_fd("pipex: command not found: ", 2);
 	if ((*tmp)->cmd)
 		ft_putstr_fd((*tmp)->cmd, 2);
 	ft_putstr_fd("\n", 2);
 	// free_array(strs->args);
-	close_pipe_free_exit(data, strs, 127); //127 ou errno ?
+	close_pipe_free_exit(data, NULL, 127); //127 ou errno ?
 }
 
 void malloc_error(t_data **data)
@@ -44,13 +44,13 @@ void malloc_error(t_data **data)
 }
 
 //env -i ./pipex_bonus infile "cat" "cat"  outfile
-void open_error(t_data **data, t_strs *strs, char *file)
+void open_error(t_data **data, char *file)
 {
 	ft_putstr_fd("pipex: ", 2);
 	ft_putstr_fd(file, 2);
 	ft_putstr_fd(": ", 2);
 	perror("");
-	close_pipe_free_exit(data, strs, errno);
+	close_pipe_free_exit(data, NULL, errno);
 }
 
 int close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)

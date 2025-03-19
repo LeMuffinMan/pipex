@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "libft.h"
-#include "pipex_bonus.h"
+#include "pipex.h"
 #include <fcntl.h>  // open
 #include <stdio.h>  // perror
 #include <stdlib.h> // exit

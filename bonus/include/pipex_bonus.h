@@ -43,12 +43,10 @@ void				parse_redirect_execute(t_data **data, t_data **tmp,
 						char **av);
 
 // errors.c
-void				error_permission_denied(t_data **data, t_strs *strs);
-void				error_cmd_not_found(t_data **data, t_data **tmp,
-						t_strs *strs);
-void				open_error(t_data **data, t_strs *strs, char *file);
-void				print_errors(t_data **data, t_strs *strs, char *message,
-						int error_code);
+void				error_permission_denied(t_data **data);
+void				error_cmd_not_found(t_data **data, t_data **tmp);
+void				open_error(t_data **data, char *file);
+void				print_errors(t_data **data, char *message, int error_code);
 void				malloc_error(t_data **data);
 
 // init.c
@@ -62,14 +60,13 @@ char				*get_last_arg(char **av);
 
 // fd_management.c
 int					get_pipe(t_data **node, t_data **data);
-int					open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp,
-						t_strs *strs);
+int					open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp);
 int					open_dup_close_output_redirection(t_data **data,
-						t_data **tmp, t_strs *strs, char **av);
+						t_data **tmp, char **av);
 int					open_dup_close_input_redirection(t_data **data,
-						t_data **tmp, t_strs *strs, char **av);
+						t_data **tmp, char **av);
 int					redirect_stdin_stdout(t_data **tmp, t_data **data,
-						t_strs *strs, char **av);
+						char **av);
 
 // parsing.c
 char				*get_binary(char *cmd, char **envp);

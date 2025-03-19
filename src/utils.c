@@ -14,7 +14,7 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <errno.h>
-#include "pipex_bonus.h"
+#include "pipex.h"
 #include "libft.h"
 #include <stdio.h>  // perror
 

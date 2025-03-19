@@ -49,7 +49,7 @@ int main(int ac, char **av, char **env)
         get_pipe(&tmp, &data);
       tmp->pid = fork();
       if (tmp->pid == -1)
-        print_errors(&data, NULL, "fork: ", -1); // voir si errno marche partout comme on veut 
+        print_errors(&data, "fork: ", -1); // voir si errno marche partout comme on veut 
       if (tmp->pid == 0)
           parse_redirect_execute(&data, &tmp, av);
       else

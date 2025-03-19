@@ -20,7 +20,7 @@
 
 // free toute la liste
 // gerer open error
-int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, char **av)
+int open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 {
     int file;
 
@@ -30,12 +30,12 @@ int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, 
   	{
   		close((*tmp)->fd[1]);
   		//ici open error et plus loin print_errors ?
-  		open_error(data, strs, av[1]);
+  		open_error(data, av[1]);
   	}
     if (dup2(file, STDIN_FILENO) == -1)
     {
 	    close(file);
-	    print_errors(data, strs, "dup2: ", -1);
+	    print_errors(data, "dup2: ", -1);
     }
 		/* dprintf(2, "%s (%d) will be input for 1st cmd\n", av[1], file); */
   	if ((*tmp)->fd[0] > 2) // a generaliser ?
@@ -45,14 +45,14 @@ int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, 
     if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
     {
 	    close((*tmp)->fd[1]);
-	    print_errors(data, strs, "dup2: ", -1);
+	    print_errors(data, "dup2: ", -1);
     }
     close((*tmp)->fd[1]);
     return (0);
 }
 
 //gerer open error !
-int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs, char **av)
+int open_dup_close_output_redirection(t_data **data, t_data **tmp, char **av)
 {
     int file;
 
@@ -64,14 +64,14 @@ int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs,
   if (file < 0) 
   {
 		close((*tmp)->fd[0]);
-  	print_errors(data, strs, "open: ", errno);
+  	print_errors(data, "open: ", errno);
   }
 	// coder le no such file directory infile + executer la seconde normalement 
 	// verifier les perms 
 	if (dup2(file, STDOUT_FILENO) == -1)
 	{
 		close(file);
-		print_errors(data, strs, "dup2: ", -1);
+		print_errors(data, "dup2: ", -1);
 	}
 	/* dprintf(2, "%s (%d) will recieve output from last cmd\n", av[4], file); */
 	(*tmp)->fd[1] = file;
@@ -79,43 +79,43 @@ int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs,
 	if (ft_strncmp(av[1], "here_doc", 8) == 0)
 	{
 		if (unlink(av[1]) != 0)
-			print_errors(data, strs, "unlink: ", errno);
+			print_errors(data, "unlink: ", errno);
 	}
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
 	{
 		close((*tmp)->fd[0]);
-		print_errors(data, strs, "dup2: ", -1);
+		print_errors(data, "dup2: ", -1);
 	}
 	close((*tmp)->fd[0]);
 	return (0);
 }
 
-int open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp, t_strs *strs)
+int open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 {
 	if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
 	{
 		close((*tmp)->fd[1]);
-		print_errors(data, strs, "dup2: ", -1);
+		print_errors(data, "dup2: ", -1);
 	}
 	close((*tmp)->fd[1]);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
 	{
 		close((*tmp)->fd[0]);
-		print_errors(data, strs, "dup2: ", -1);
+		print_errors(data, "dup2: ", -1);
 	}
 	close((*tmp)->fd[0]);
 	return (0);
 }
 
-int	redirect_stdin_stdout(t_data **tmp, t_data **data, t_strs *strs, char **av)
+int	redirect_stdin_stdout(t_data **tmp, t_data **data, char **av)
 {
 	if ((*tmp)->file && ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0)
-	    open_dup_close_input_redirection(data, tmp, strs, av);
+	    open_dup_close_input_redirection(data, tmp, av);
 	else if ((*tmp)->file && ft_strncmp((*tmp)->file, get_last_arg(av),
 			ft_strlen((*tmp)->file)) == 0)
-		open_dup_close_output_redirection(data, tmp, strs, av);
+		open_dup_close_output_redirection(data, tmp, av);
 	else
-	    open_dup_close_pipe_to_pipe(data, tmp, strs);
+	    open_dup_close_pipe_to_pipe(data, tmp);
 	return (0);
 }
 

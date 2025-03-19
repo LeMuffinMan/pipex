@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex_bonus.h"
+#include "pipex.h"
 #include <unistd.h>
 #include "libft.h"
 #include <stdlib.h>

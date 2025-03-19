@@ -53,16 +53,16 @@ int	execute(t_strs *strs, t_data **data)
 	/* printf("executing cmd : %s\n", (*data)->cmd); */
 	exit_code = access(strs->path, F_OK);
 	if (!strs->path || exit_code != 0)
-		print_errors(data, NULL, "command not found: ", 127);
+		print_errors(data, "command not found: ", 127);
 	exit_code = access(strs->path, X_OK);
 	if (exit_code != 0)
-		print_errors(data, strs, "permission denied: ", 126);
+		print_errors(data, "permission denied: ", 126);
 	/* dprintf(2, "tmp->cmd = %s\n", (*data)->cmd); */
 	/* dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]); */
 	/* dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]); */
 	exit_code = execve(strs->path, strs->args, (*data)->env);
 	if (exit_code != 0)
-		print_errors(data, strs, "execve: ", 0);
+		print_errors(data, "execve: ", 0);
 	return (0);
 }
 
@@ -91,7 +91,7 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	//cas 5 : PATH empty et /usr/bin/ls
 
 
-	redirect_stdin_stdout(tmp, data, &strs, av); //en cas d'erreur args a free !
+	redirect_stdin_stdout(tmp, data, av); //en cas d'erreur args a free !
 	strs.path = NULL;
 	if ((*tmp)->cmd)
 	{
@@ -100,7 +100,7 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 			malloc_error(data);	
 		if (!strs.args[0])
 		{
-			error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
+			error_cmd_not_found(data, tmp); //ajouter strs pour tout free
 			free_array(strs.args);
 		}
 	}
@@ -110,10 +110,10 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	{
 		strs.path = get_binary(strs.args[0], (*tmp)->env);
 		if (!strs.path) 
-			error_cmd_not_found(data, tmp, &strs);
+			error_cmd_not_found(data, tmp);
 	}
 	else
-		error_cmd_not_found(data, tmp, &strs);
+		error_cmd_not_found(data, tmp);
 	execute(&strs, data);
 }
 
