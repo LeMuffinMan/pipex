@@ -1,80 +1,107 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_bonus.c                                      :+:      :+:    :+:   */
+/*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/15 17:27:33 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/08 15:28:27 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
+// mettre un max fd dans l'include ?
+// dup2 et close a proteger ?
 
 #include "libft.h"
 #include "pipex.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
+#include <errno.h>    // errno
+#include <fcntl.h>    // open
+#include <stdio.h>    // perror
+#include <stdlib.h>   // exit
+#include <string.h>   // strerror
+#include <sys/wait.h> // wait, waitpid
+#include <unistd.h>   // fork, pipe, dup2, execve, access, close, read, write
 
+// gerer les arguments des commandes
+// gerer la stdout de la 1ere commande : pas dans le fd 0, utiliser dup2
+// D'ABORD : on verifie si file1 exist et est accessible
+// Puis, on le prend comme fd / stdin
+// on execute la commande avec ce fd
+// on redirige la stdout de cmd1 vers stdin de cmd2
+// on verifie si file2 exists et est accessible, on le touch si il existe pas ?
+// on execute cmd2 avec en stdin la stdout de cmd1,
+/* et on la stdout de cmd2 est redirigee vers file2 */
+// on close tous les fd
+// on attend les children
+
+/// access(const char *pathname, int mode)
+///- F_OK : file exists
+///- R_OK : readable
+///- W_OK : writable
+///- X_OK : executable
+///
+/// errno : variable globale qui stock le dernier code d'erreur de l'appel
+/// systeme echoue
+/// strerror a la place ?
+///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-/// proteger is infile ou outfile est /dev/urandom
-int main(int ac, char **av, char **env)
-{
-  t_data *data;
-  t_data *tmp;
+//utiliser putstrfd
 
-	data = NULL;
-  if (ac >= 5)
-  {
-    init_data(&data, av, env);    
-    tmp = data;
-    while(tmp)
-    {
-      if (tmp && tmp->next)
-        get_pipe(&tmp, &data);
-      tmp->pid = fork();
-      if (tmp->pid == -1)
-        print_errors(&data, NULL, "fork: ", -1); // voir si errno marche partout comme on veut 
-      if (tmp->pid == 0)
-          parse_redirect_execute(&data, &tmp, av);
-      else
-      {
-        if (tmp && tmp->fd[1] > 2)
-        	close(tmp->fd[1]);
-        if (tmp->prev && tmp->prev->fd[0] > 2)
-          close(tmp->prev->fd[0]);
-      }
-      if (!tmp->next)
-        close(tmp->fd[0]);
-      tmp = tmp->next;
-    }
-    exit(wait_children(&data)); 
-  }
-  else 
-  {
-    ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
-    free_data(&data);
-    exit(1);
-  }
+int	main(int ac, char **av, char **envp)
+{
+	pid_t	pid1;
+	pid_t	pid2;
+	int		fd[2];
+	t_data	data;
+
+	//proteger si ac < 5
+	data.envp = envp;
+	init(&data, ac, av, fd);
+	pid1 = fork();
+	if (pid1 == -1)
+		close_and_quit(fd, errno);
+	if (pid1 == 0)
+		parse_redirect_execute(&data, fd);
+	data.pos = 1;
+	pid2 = fork();
+	if (pid2 == -1)
+		close_and_quit(fd, errno);
+	if (pid2 == 0)
+		parse_redirect_execute(&data, fd);
+	if (close(fd[0]) == -1)
+		exit(errno);
+	if (close(fd[1]) == -1)
+		exit(errno);
+	exit(wait_children(fd, pid1, pid2));
 }
 
-//le tip coralie pour PATH ?
+// si on supprime que la ligne PATH ?
+// env -i / unset PATH ?
+//
+// tout proteger
+// 	- verifier si on free tout en sortant
 
-//checker toutes les leaks des cas chiants 
-//Pas de leak sur infile cat ls outfile 
-//pipex: infile: pipex: command not found: lgs==43201== Warning: invalid file descriptor -1 in syscall close()
+/// sleep 5 : verfier que tout fonctionne en mm temps ( sleep 5 | sleep 5 )
+/// infile cat | cat | ls outfile
+////bin/ls comme cmd
+/// proteger is infile ou outfile est /dev/urandom
+/// here_doc : limiter = EOF et pas EOFa
+///
+///
 
-/* oelleaum@z2r5p6:~/GitPerso/pipex$ ./pipex_bonus infile "echo 'hello'" "sudo apt update" outfile */
-/* new pipe : in = 4 out = 3 */
-/* cmd1 : echo 'hello' will write in fd 4 */
-/* cmd2 : sudo apt update wait input from fd 3 */
-/**/
-/* pipex: open error: Bad file descriptor */
-/* pipex: command not found: sudo apt update */
-/* oelleaum@z2r5p6:~/GitPerso/pipex$ echo $? */
-/* 139 */
-
-
-
+/* int i = 0; */
+/* printf("cmd1->binary = %s\n", data->binary); */
+/* while (data->args[i]) */
+/* { */
+/*   printf("cmd1->args = %s\n", data->args[i]); */
+/*   i++; */
+/* } */
+/* printf("cmd2->binary = %s\n", data->next->binary); */
+/* i = 0; */
+/* while (data->next->args[i]) */
+/* { */
+/*   printf("cmd2->args = %s\n", data->next->args[i]); */
+/*   i++; */
+/* } */

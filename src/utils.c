@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils_bonus.c                                      :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 13:12:54 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/19 16:24:54 by oelleaum         ###   ########.fr       */
+/*   Updated: 2025/03/08 13:13:48 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,17 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <errno.h>
-#include "pipex.h"
-#include "libft.h"
-#include <stdio.h>  // perror
+
+int	dup_and_close(int fd_out, int fd_in, int fd_to_close)
+{
+	if (dup2(fd_out, STDOUT_FILENO) == -1)
+		exit(errno);
+	if (dup2(fd_in, STDIN_FILENO) == -1)
+		exit(errno);
+	if (close(fd_to_close) == -1)
+		exit(errno);
+	return (0);
+}
 
 int	is_a_path(char *s)
 {
@@ -32,19 +40,25 @@ int	is_a_path(char *s)
 	return (0);
 }
 
+int	close_and_quit(int fd[2], int error_code)
+{
+	if (close(fd[0]) == -1)
+		exit(errno);
+	if (close(fd[1]) == -1)
+		exit(errno);
+	exit(error_code);
+}
+
 void	free_array(char **s)
 {
 	int	i;
 
 	i = 0;
-	while (s && s[i])
+	while (s[i])
 	{
 		free(s[i]);
 		s[i] = NULL;
 		i++;
 	}
 	free(s);
-	s = NULL;
 }
-
-
