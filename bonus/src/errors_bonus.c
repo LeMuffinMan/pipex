@@ -6,7 +6,7 @@
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 13:18:50 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/15 17:41:56 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/19 16:51:32 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ void error_cmd_not_found(t_data **data, t_data **tmp, t_strs *strs)
 	if ((*tmp)->cmd)
 		ft_putstr_fd((*tmp)->cmd, 2);
 	ft_putstr_fd("\n", 2);
+	// free_array(strs->args);
 	close_pipe_free_exit(data, strs, 127); //127 ou errno ?
 }
 
@@ -56,8 +57,9 @@ int close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
 {
 	/* dprintf(2, "fd to close : %d\n", (*data)->fd[1]); */
 	/* dprintf(2, "data->fd[0] = %d\n data->fd[1] = %d\n", (*data)->fd[0], (*data)->fd[1]); */
-	if ((*data)->prev)
+	// if ((*data)->prev):
 		/* dprintf(2, "data->prev->fd[0] = %d\ndata->prev->fd[1] = %d\n", (*data)->prev->fd[0], (*data)->prev->fd[1]); */
+	// dprintf(2, "|%p|\n", strs->args);
 	if (strs->args)
 		free_array(strs->args);
 	if (strs->path)

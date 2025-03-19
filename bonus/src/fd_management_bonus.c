@@ -37,7 +37,7 @@ int open_dup_close_input_redirection(t_data **data, t_data **tmp, t_strs *strs, 
 	    close(file);
 	    print_errors(data, strs, "dup2: ", -1);
     }
-		dprintf(2, "%s (%d) will be input for 1st cmd\n", av[1], file);
+		/* dprintf(2, "%s (%d) will be input for 1st cmd\n", av[1], file); */
   	if ((*tmp)->fd[0] > 2) // a generaliser ?
     	close((*tmp)->fd[0]);
     (*tmp)->fd[0] = file;
@@ -73,7 +73,7 @@ int open_dup_close_output_redirection(t_data **data, t_data **tmp, t_strs *strs,
 		close(file);
 		print_errors(data, strs, "dup2: ", -1);
 	}
-	dprintf(2, "%s (%d) will recieve output from last cmd\n", av[4], file);
+	/* dprintf(2, "%s (%d) will recieve output from last cmd\n", av[4], file); */
 	(*tmp)->fd[1] = file;
 	close(file);
 	if (ft_strncmp(av[1], "here_doc", 8) == 0)
@@ -131,23 +131,23 @@ int	get_pipe(t_data **node, t_data **data)
 		free_data(data);
 		exit(errno);
 	}
-	dprintf(2, "new pipe : in = %d out = %d\n", fd[1], fd[0]);
+	/* dprintf(2, "new pipe : in = %d out = %d\n", fd[1], fd[0]); */
 	// au premier node (cmd1) : on a set la sortie de cmd1 et l'entree de cmd2
 	if (node && !(*node)->prev)
 	{
 		(*node)->fd[1] = fd[1];
 		(*node)->fd[0] = 3;
 		(*node)->next->fd[0] = 3;
-		dprintf(2, "cmd1 : %s write in fd %d\n", (*node)->cmd, (*node)->fd[1]);
-		dprintf(2, "cmd2 : %s read from fd %d\n\n", (*node)->next->cmd, (*node)->next->fd[0]);
+		/* dprintf(2, "cmd1 : %s write in fd %d\n", (*node)->cmd, (*node)->fd[1]); */
+		/* dprintf(2, "cmd2 : %s read from fd %d\n\n", (*node)->next->cmd, (*node)->next->fd[0]); */
 	}
 	// si on est PAS ENCORE sur la derniere
 	else if (node && (*node)->next)
 	{
 		(*node)->fd[1] = fd[1];
 		(*node)->next->fd[0] = fd[0];
-		dprintf(2, "cmd1 : %s write in fd %d\n", (*node)->cmd, (*node)->fd[1]);
-		dprintf(2, "cmd2 : %s read from fd %d\n\n", (*node)->next->cmd, (*node)->next->fd[0]);
+		/* dprintf(2, "cmd1 : %s write in fd %d\n", (*node)->cmd, (*node)->fd[1]); */
+		/* dprintf(2, "cmd2 : %s read from fd %d\n\n", (*node)->next->cmd, (*node)->next->fd[0]); */
 	}
 	return (0);
 }
