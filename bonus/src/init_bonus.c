@@ -86,6 +86,8 @@ int here_doc(char **av)
   int file;
   char *line;
 	
+	//mettre le here_doc dans /tnp
+	//faire un join
 	file = open(av[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (file == -1)
 	{
