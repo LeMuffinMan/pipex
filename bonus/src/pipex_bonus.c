@@ -80,6 +80,10 @@ int main(int ac, char **av, char **env)
   }
 }
 
+//le tip coralie pour PATH ?
+
+//checker toutes les leaks des cas chiants 
+//Pas de leak sur infile cat ls outfile 
 //pipex: infile: pipex: command not found: lgs==43201== Warning: invalid file descriptor -1 in syscall close()
 
 /* oelleaum@z2r5p6:~/GitPerso/pipex$ ./pipex_bonus infile "echo 'hello'" "sudo apt update" outfile */
@@ -91,3 +95,9 @@ int main(int ac, char **av, char **env)
 /* pipex: command not found: sudo apt update */
 /* oelleaum@z2r5p6:~/GitPerso/pipex$ echo $? */
 /* 139 */
+
+
+/* valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --show-mismatched-frees=yes --track-fds=yes --trace-children=yes env -i ./pipex_bonus infile "cat" "cat"  outfile */
+// des still reachables dans les deux childs 
+// 2 free manquants mais pas de definitely lost ?
+// dans les deux childs

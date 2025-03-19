@@ -65,7 +65,7 @@ char	*which_cmd(char **paths, char *cmd)
 
 	binary = NULL;
 	i = 0;
-	while (paths[i])
+	while (paths && paths[i])
 	{
 		binary = join_full_path(binary, cmd, paths[i]);
 		if (access(binary, X_OK) == 0)
@@ -85,7 +85,7 @@ char	**get_paths(char **envp)
 	paths = NULL;
 	path_line = get_path_line(envp);
 	if (!path_line)
-		ft_putstr_fd("path_line not found\n", 2); // comment on gere le cas ou le path a pas ete trouve ?
+		return (NULL);
 	paths = ft_split(path_line, ':');
 	return (paths);
 }
@@ -99,18 +99,16 @@ char	*get_binary(char *cmd, char **envp)
 	paths = get_paths(envp);
 	if (paths == NULL)
 	{
-		ft_putstr_fd("path_line not found\n", 2); // comment on gere le cas ou le path a pas ete trouve ?
-		// on Fait quoi si on a trouve 0 path line ?
-		/* return (NULL); */
+		if (access(cmd, F_OK) != 0)
+		{
+			ft_putstr_fd("pipex: ", 2);
+			ft_putstr_fd(cmd, 2);
+			ft_putstr_fd(": No such file or directory\n", 2);
+		}
 	}
 	args = ft_split(cmd, ' ');
 	if (!args)
-	{
-		//Pareil on fait quoi si on n'a pas d'args ni de cmd ?
-		/* free_array(paths); */
-		/* perror("args"); */
 		return (NULL);
-	}
 	binary = which_cmd(paths, args[0]);
 	free_array(paths);
 	free_array(args);

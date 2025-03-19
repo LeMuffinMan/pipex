@@ -6,7 +6,7 @@
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 13:24:42 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/15 17:00:28 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/19 16:24:13 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,17 +72,35 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
 	t_strs strs;
 
-	//cas 1 : ls
+	//cas 1 : ls 
+		//cmd 1 ok 
+		//cmd 2 ok
 	//cas 2 : ls -l
+		//cmd 1 ok 
+		//cmd 2 ok 
 	//cas 3 : /usr/bin/ls
+		//cmd 1 ok 
+		//cmd 2 ok 
 	//cas 4 : /usr/bin/ls -l
+		//cmd 1 ok 
+		//cmd 2 ok 
+	//cas 5 : env -i : path line not found ou cmd not found et on s'arrete ?
 	//cas 5 : no env et /usr/bin/ls
+		//cmd1 cmd2 ok 
 	//cas 5 : no PATH et /usr/bin/ls
 	//cas 5 : PATH empty et /usr/bin/ls
 	strs.path = NULL;
-	strs.args = ft_split((*tmp)->cmd, ' ');
-	if (!strs.args[0]) // empeche un segfautl pour une cmd "" ?
-		error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
+	if ((*tmp)->cmd)
+	{
+		strs.args = ft_split((*tmp)->cmd, ' ');
+		if (!strs.args)
+			malloc_error(data);	
+		if (!strs.args[0])	
+			free_array(strs.args);
+	/* if (!strs.args[0]) // empeche un segfautl pour une cmd "" ? */
+		/* strs.args = NULL; */
+	}
+	error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
 	redirect_stdin_stdout(tmp, data, &strs, av); //en cas d'erreur args a free !
 	if (is_a_path(strs.args[0]))
 		strs.path = strs.args[0];
