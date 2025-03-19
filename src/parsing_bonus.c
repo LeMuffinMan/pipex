@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parsing.c                                          :+:      :+:    :+:   */
+/*   parsing_bonus.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:23:06 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:27:56 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/15 17:42:57 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
+#include "pipex_bonus.h"
 #include "libft.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,6 +25,7 @@ char	*get_path_line(char **envp)
 	path_line = NULL;
 	while (envp[i])
 	{
+		//tip de Coralie : on cherche la longueur jusqu'au = ?
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5)
 		{
 			path_line = envp[i] + 5;
@@ -41,7 +42,7 @@ char	*join_full_path(char *binary, char *cmd, char *path)
 	int	j;
 
 	binary = malloc(sizeof(char) * ft_strlen(path) + ft_strlen(cmd) + 2);
-	if (!binary)
+	if (binary == NULL)
 		return (NULL);
 	i = 0;
 	while (path[i])
@@ -64,7 +65,7 @@ char	*which_cmd(char **paths, char *cmd)
 
 	binary = NULL;
 	i = 0;
-	while (paths[i])
+	while (paths && paths[i])
 	{
 		binary = join_full_path(binary, cmd, paths[i]);
 		if (access(binary, X_OK) == 0)
@@ -84,10 +85,7 @@ char	**get_paths(char **envp)
 	paths = NULL;
 	path_line = get_path_line(envp);
 	if (!path_line)
-	{
-		write(2, "path_line not found\n", 20);
-		exit (1);
-	}
+		return (NULL);
 	paths = ft_split(path_line, ':');
 	return (paths);
 }
@@ -99,18 +97,18 @@ char	*get_binary(char *cmd, char **envp)
 	char	*binary;
 
 	paths = get_paths(envp);
-	if (!paths)
+	if (paths == NULL)
 	{
-		perror("get paths");
-		return (NULL);
+		if (access(cmd, F_OK) != 0)
+		{
+			ft_putstr_fd("pipex: ", 2);
+			ft_putstr_fd(cmd, 2);
+			ft_putstr_fd(": No such file or directory\n", 2);
+		}
 	}
 	args = ft_split(cmd, ' ');
 	if (!args)
-	{
-		free_array(paths);
-		perror("args");
 		return (NULL);
-	}
 	binary = which_cmd(paths, args[0]);
 	free_array(paths);
 	free_array(args);

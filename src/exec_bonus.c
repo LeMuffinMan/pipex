@@ -99,17 +99,17 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 		if (!strs.args)
 			malloc_error(data);	
 		if (!strs.args[0])
-		{
-			error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
 			free_array(strs.args);
-		}
+	/* if (!strs.args[0]) // empeche un segfautl pour une cmd "" ? */
+		/* strs.args = NULL; */
+		error_cmd_not_found(data, tmp, &strs); //ajouter strs pour tout free
 	}
 	if (is_a_path(strs.args[0]))
 		strs.path = strs.args[0];
-	else if ((*data)->env)
+	else if ((*data)->env) // voir les cas possibles ici
 	{
 		strs.path = get_binary(strs.args[0], (*tmp)->env);
-		if (!strs.path) 
+		if (!strs.path) // avec ou sans * ? 
 			error_cmd_not_found(data, tmp, &strs);
 	}
 	else

@@ -1,35 +1,50 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   init.c                                             :+:      :+:    :+:   */
+/*   utils_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/08 15:18:38 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:27:59 by oelleaum         ###   ########lyon.fr   */
+/*   Created: 2025/03/08 13:12:54 by oelleaum          #+#    #+#             */
+/*   Updated: 2025/03/19 16:24:54 by oelleaum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <errno.h>
-#include <stdio.h>
 #include <sys/wait.h>
-#include <unistd.h>
-#include "pipex.h"
+#include <unistd.h> 
 #include <stdlib.h>
+#include <errno.h>
+#include "pipex_bonus.h"
+#include "libft.h"
+#include <stdio.h>  // perror
 
-int	init(t_data *data, int ac, char **av, int fd[2])
+int	is_a_path(char *s)
 {
-	if (ac != 5 || !*(data)->envp)
-		exit(errno);
-	data->infile = av[1];
-	data->cmd1 = av[2];
-	data->cmd2 = av[3];
-	data->outfile = av[4];
-	if (pipe(fd) == -1)
+	int	i;
+
+	i = 0;
+	while (s[i])
 	{
-		perror("pipe");
-		exit(errno);
+		if (s[i] == '/')
+			return (1);
+		i++;
 	}
-	data->pos = 0;
 	return (0);
 }
+
+void	free_array(char **s)
+{
+	int	i;
+
+	i = 0;
+	while (s && s[i])
+	{
+		free(s[i]);
+		s[i] = NULL;
+		i++;
+	}
+	free(s);
+	s = NULL;
+}
+
+

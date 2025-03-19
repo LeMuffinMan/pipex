@@ -29,10 +29,17 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
+//retester la mandatory
+//reecrire mandatory
+
+// pour toute erreur : verifier si je free tout data
 // verifier les protection des fonctions qui foirent 
 // mettre un max fd dans l'include ?
 
 /// proteger is infile ou outfile est /dev/urandom
+//bin/ls comme cmd
+// si on supprime que la ligne PATH ?
+// env -i / unset PATH ?
 int main(int ac, char **av, char **env)
 {
   t_data *data;
@@ -67,18 +74,13 @@ int main(int ac, char **av, char **env)
   }
   else 
   {
-    ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n", 1);
+    ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile\n", 1);
     free_data(&data);
     exit(1);
   }
 }
 
-
-//virer le here doc de src !!!
-//renommer tout SRC !!! pour virer les truc bonus dans les TITRES et dans les FICHIERS !
-//normer
 //le tip coralie pour PATH ?
-//tester le here doc 
 
 //checker toutes les leaks des cas chiants 
 //Pas de leak sur infile cat ls outfile 
