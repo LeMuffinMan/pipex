@@ -47,4 +47,31 @@ void	free_array(char **s)
 	s = NULL;
 }
 
+char *get_last_arg(char **av)
+{
+	int i;
+
+	i = 0;
+	while (av && av[i])
+		i++;
+	return (av[i - 1]);
+}
+
+int free_data(t_data **data)
+{
+	t_data *tmp;
+	t_data *next_node;
+
+	tmp = *data;
+	if (!*data)
+		return (1);
+	while(tmp)
+	{
+		next_node = tmp->next;
+		free(tmp);
+		tmp = next_node;
+	}
+	*data = NULL;
+	return (0);
+}
 

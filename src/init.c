@@ -17,19 +17,62 @@
 #include "pipex.h"
 #include <stdlib.h>
 
-int	init(t_data *data, int ac, char **av, int fd[2])
+int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
-	if (ac != 5 || !*(data)->envp)
-		exit(errno);
-	data->infile = av[1];
-	data->cmd1 = av[2];
-	data->cmd2 = av[3];
-	data->outfile = av[4];
-	if (pipe(fd) == -1)
-	{
-		perror("pipe");
-		exit(errno);
-	}
-	data->pos = 0;
+	t_data *node;
+
+	node = malloc(sizeof(t_data));
+	if (node == NULL)
+		malloc_error(data);
+	*data = node;
+	node->file = infile;
+	node->cmd = cmd;
+	node->env = env;
+	node->next = NULL;
+	node->prev = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
 	return (0);
 }
+
+int add_node(t_data **data, char *cmd, char **env, char *last_arg)
+{
+	t_data *node;
+	t_data *tmp;
+
+	node = NULL;
+	node = malloc(sizeof(t_data));
+	if (node == NULL)
+		malloc_error(data);
+	tmp = *data;
+	while (tmp->next)
+		tmp = tmp->next;
+	tmp->next = node;
+	node->prev = tmp;
+	if (*last_arg)
+		node->file = last_arg;
+	else
+		node->file = NULL;
+	node->cmd = cmd;
+	node->env = env;
+	node->next = NULL;
+	node->fd[0] = -1;
+	node->fd[1] = -1;
+	return (0);
+}
+
+int init_data(t_data **data, char **av, char **env)
+{
+	int i;
+
+	add_first_node(data, av[2], env, av[1]);
+	i = 3;
+	while (av[i + 1])
+	{
+		add_node(data, av[i], env, av[i + 1]);
+		i++;
+	}
+	return (0);
+}
+
+

@@ -15,43 +15,51 @@
 #include "libft.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
-int	open_error(int fd, char *file, char *path, char **args)
+void print_errors(t_data **data, char *message, int error_code, int fd_to_close)
 {
-	write(2, "pipex: ", 7);
-	write(2, file, ft_strlen(file));
-	write(2, ": ", 2);
+	if (fd_to_close > 2)
+		close(fd_to_close);
+	ft_putstr_fd("pipex: ", 2);
+	ft_putstr_fd(message, 2);
 	perror("");
-	free(path);
-	free_array(args);
-	close(fd);
-	exit(1);
+	close_pipe_free_exit(data, NULL, error_code);
 }
 
-int	error_cmd_not_found(int fd[2], char **args, char *path, char *binary)
+void error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp)
 {
-	write(2, "pipex: ", 7);
-	write(2, "command not found: ", 19);
-	if (args[0])
-		write(2, args[0], ft_strlen(args[0]));
-	write(2, "\n", 1);
-	if (binary)
-		free(binary);
-	if (path)
-		free(path);
-	free_array(args);
-	if (close(fd[0]) == -1)
-		exit(127);
-	if (close(fd[1]) == -1)
-		exit(127);
-	exit(127);
+	ft_putstr_fd("pipex: command not found: ", 2);
+	if ((*tmp)->cmd)
+		ft_putstr_fd((*tmp)->cmd, 2);
+	ft_putstr_fd("\n", 2);
+	close_pipe_free_exit(data, strs, 127); 
 }
 
-int	error_permission_denied(char **args, char *binary)
+void malloc_error(t_data **data)
 {
-	ft_putstr_fd("pipex: permission denied: ", 2);
+	ft_putstr_fd("pipex: malloc error: ", 2);
 	perror("");
-	free_array(args);
-	free(binary);
-	exit(1);
+	close_pipe_free_exit(data, NULL, errno); 
 }
+
+int close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
+{
+	if (strs && strs->args)
+		free_array(strs->args);
+	if (strs && strs->path)
+		free(strs->path);
+	if ((*data)->fd[0] && (*data)->fd[0] > 2)
+		close((*data)->fd[0]);
+	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1] > 2)
+		close((*data)->prev->fd[1]);
+	if (*data && (*data)->fd[1] && (*data)->fd[1] > 2)
+		close((*data)->fd[1]);
+	free_data(data);
+	if (exit_code == 0)
+		exit(errno);
+	else
+		exit(exit_code);
+	return (0);
+}
+

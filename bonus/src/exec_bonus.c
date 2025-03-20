@@ -27,15 +27,15 @@ int wait_children(t_data **data)
 
 	tmp = *data;
 	exit_code = EXIT_SUCCESS;
-	while (tmp->next)
+	while (tmp)
 	{
 		waitpid(tmp->pid, &status, 0);
 		if (WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
+			exit_code = WEXITSTATUS(status); 
 		else if (WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
 		if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-			exit_code = WEXITSTATUS(status);
+			exit_code = WEXITSTATUS(status), printf("exit code = %d\n", exit_code);
 		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
 		tmp = tmp->next;
@@ -45,53 +45,26 @@ int wait_children(t_data **data)
 }
 
 //gerer si on me donne PATH et pas d'env
-//free toute la liste !
-//il faut lui filer data pour qu'il puisse la free !
 int	execute(t_strs *strs, t_data **data)
 {
 	int exit_code;
-	/* printf("executing cmd : %s\n", (*data)->cmd); */
 	exit_code = access(strs->path, F_OK);
 	if (!strs->path || exit_code != 0)
-		print_errors(data, "command not found: ", 127);
+		print_errors(data, "command not found: ", 127, -1);
 	exit_code = access(strs->path, X_OK);
 	if (exit_code != 0)
-		print_errors(data, "permission denied: ", 126);
-	/* dprintf(2, "tmp->cmd = %s\n", (*data)->cmd); */
-	/* dprintf(2, "tmp->fd[0]: %d\n", (*data)->fd[0]); */
-	/* dprintf(2, "tmp->fd[1]: %d\n", (*data)->fd[1]); */
+		print_errors(data, "permission denied: ", 126, -1);
 	exit_code = execve(strs->path, strs->args, (*data)->env);
 	if (exit_code != 0)
-		print_errors(data, "execve: ", 0);
+		print_errors(data, "execve: ", 0, -1);
 	return (0);
 }
 
-//voir tous les tests chiants et securiser 
-//il faut free toute la liste !!
 void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
 	t_strs strs;
 
-	//cas 1 : ls 
-		//cmd 1 ok 
-		//cmd 2 ok
-	//cas 2 : ls -l
-		//cmd 1 ok 
-		//cmd 2 ok 
-	//cas 3 : /usr/bin/ls
-		//cmd 1 ok 
-		//cmd 2 ok 
-	//cas 4 : /usr/bin/ls -l
-		//cmd 1 ok 
-		//cmd 2 ok 
-	//cas 5 : env -i : path line not found ou cmd not found et on s'arrete ?
-	//cas 5 : no env et /usr/bin/ls
-		//cmd1 cmd2 ok 
-	//cas 5 : no PATH et /usr/bin/ls
-	//cas 5 : PATH empty et /usr/bin/ls
-
-
-	redirect_stdin_stdout(tmp, data, av); //en cas d'erreur args a free !
+	redirect_stdin_stdout(tmp, data, av);
 	strs.path = NULL;
 	if ((*tmp)->cmd)
 	{
@@ -99,10 +72,7 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 		if (!strs.args)
 			malloc_error(data);	
 		if (!strs.args[0])
-		{
-			error_cmd_not_found(data, tmp); //ajouter strs pour tout free
-			free_array(strs.args);
-		}
+			error_cmd_not_found(data, &strs, tmp);
 	}
 	if (is_a_path(strs.args[0]))
 		strs.path = strs.args[0];
@@ -110,10 +80,10 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	{
 		strs.path = get_binary(strs.args[0], (*tmp)->env);
 		if (!strs.path) 
-			error_cmd_not_found(data, tmp);
+			error_cmd_not_found(data, &strs, tmp);
 	}
 	else
-		error_cmd_not_found(data, tmp);
+		error_cmd_not_found(data, &strs, tmp);
 	execute(&strs, data);
 }
 

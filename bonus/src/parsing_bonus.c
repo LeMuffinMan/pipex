@@ -25,7 +25,6 @@ char	*get_path_line(char **envp)
 	path_line = NULL;
 	while (envp[i])
 	{
-		//tip de Coralie : on cherche la longueur jusqu'au = ?
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0 && ft_strlen(envp[i]) > 5)
 		{
 			path_line = envp[i] + 5;

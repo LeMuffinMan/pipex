@@ -49,33 +49,63 @@
 
 //utiliser putstrfd
 
-int	main(int ac, char **av, char **envp)
-{
-	pid_t	pid1;
-	pid_t	pid2;
-	int		fd[2];
-	t_data	data;
 
-	//proteger si ac < 5
-	data.envp = envp;
-	init(&data, ac, av, fd);
-	pid1 = fork();
-	if (pid1 == -1)
-		close_and_quit(fd, errno);
-	if (pid1 == 0)
-		parse_redirect_execute(&data, fd);
-	data.pos = 1;
-	pid2 = fork();
-	if (pid2 == -1)
-		close_and_quit(fd, errno);
-	if (pid2 == 0)
-		parse_redirect_execute(&data, fd);
-	if (close(fd[0]) == -1)
-		exit(errno);
-	if (close(fd[1]) == -1)
-		exit(errno);
-	exit(wait_children(fd, pid1, pid2));
+int fork_management(t_data **data, t_data **tmp, char **av)
+{
+	(*tmp)->pid = fork();
+  if ((*tmp)->pid == -1)
+    print_errors(data, "fork: ", -1, -1); 
+  if ((*tmp)->pid == 0)
+      parse_redirect_execute(data, tmp, av);
+  else
+  {
+    if ((*tmp) && (*tmp)->fd[1] > 2)
+      close((*tmp)->fd[1]);
+    if ((*tmp)->prev && (*tmp)->prev->fd[0] > 2)
+      close((*tmp)->prev->fd[0]);
+  }
+  if (!(*tmp)->next)
+    close((*tmp)->fd[0]);
+  return (0);
 }
+
+int	main(int ac, char **av, char **env)
+{
+	t_data	*data;
+	t_data *tmp;
+
+	data = NULL;
+	if (ac == 5)
+  {
+    init_data(&data, av, env);    
+    tmp = data;
+    while(tmp)
+    {
+      if (tmp && tmp->next)
+        get_pipe(&tmp, &data);
+      tmp->pid = fork();
+      if (tmp->pid == -1)
+        print_errors(&data, "fork: ", -1, -1); // voir si errno marche partout comme on veut 
+      if (tmp->pid == 0)
+          parse_redirect_execute(&data, &tmp, av);
+      else
+      {
+        if (tmp && tmp->fd[1] > 2)
+        	close(tmp->fd[1]);
+        if (tmp->prev && tmp->prev->fd[0] > 2)
+          close(tmp->prev->fd[0]);
+      }
+      if (!tmp->next)
+        close(tmp->fd[0]);
+      tmp = tmp->next;
+    }
+    exit(wait_children(&data)); 
+  }
+	else
+		ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile", 2);
+	return (0);
+}
+
 
 // si on supprime que la ligne PATH ?
 // env -i / unset PATH ?

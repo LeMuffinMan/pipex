@@ -19,24 +19,6 @@
 #include <fcntl.h>  // open
 #include "libft.h"
 
-int free_data(t_data **data)
-{
-	t_data *tmp;
-	t_data *next_node;
-
-	tmp = *data;
-	if (!*data)
-		return (1);
-	while(tmp)
-	{
-		next_node = tmp->next;
-		free(tmp);
-		tmp = next_node;
-	}
-	*data = NULL;
-	return (0);
-}
-
 int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
 	t_data *node;
@@ -119,14 +101,6 @@ int init_data(t_data **data, char **av, char **env)
 {
 	int i;
 
-  /* if (ft_strncmp(av[1], "here_doc", 8) == 0) */
-  /* { */
-    //creer un fichier temp / le supprimer avec unlink
-    //infile devient ce fichier temporaire
-     //on attend qu'il ait finit de parler, puis ont suit la meme procedure
-    //av[2] : le delimiter : tout decaller du coup !
-    //bien mettre en append la derniere redir
-  /* } */
   if (ft_strncmp(av[1], "here_doc", 8) == 0)
   {
 		here_doc(av);
@@ -146,12 +120,4 @@ int init_data(t_data **data, char **av, char **env)
 	return (0);
 }
 
-char *get_last_arg(char **av)
-{
-	int i;
 
-	i = 0;
-	while (av[i])
-		i++;
-	return (av[i - 1]);
-}

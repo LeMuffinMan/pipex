@@ -44,9 +44,8 @@ void				parse_redirect_execute(t_data **data, t_data **tmp,
 
 // errors.c
 void				error_permission_denied(t_data **data);
-void				error_cmd_not_found(t_data **data, t_data **tmp);
-void				open_error(t_data **data, char *file);
-void				print_errors(t_data **data, char *message, int error_code);
+void				error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp);
+void				print_errors(t_data **data, char *message, int error_code, int fd_to_close);
 void				malloc_error(t_data **data);
 
 // init.c

@@ -14,17 +14,8 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <errno.h>
+#include "pipex.h"
 
-int	dup_and_close(int fd_out, int fd_in, int fd_to_close)
-{
-	if (dup2(fd_out, STDOUT_FILENO) == -1)
-		exit(errno);
-	if (dup2(fd_in, STDIN_FILENO) == -1)
-		exit(errno);
-	if (close(fd_to_close) == -1)
-		exit(errno);
-	return (0);
-}
 
 int	is_a_path(char *s)
 {
@@ -40,15 +31,6 @@ int	is_a_path(char *s)
 	return (0);
 }
 
-int	close_and_quit(int fd[2], int error_code)
-{
-	if (close(fd[0]) == -1)
-		exit(errno);
-	if (close(fd[1]) == -1)
-		exit(errno);
-	exit(error_code);
-}
-
 void	free_array(char **s)
 {
 	int	i;
@@ -61,4 +43,32 @@ void	free_array(char **s)
 		i++;
 	}
 	free(s);
+}
+
+char *get_last_arg(char **av)
+{
+	int i;
+
+	i = 0;
+	while (av[i])
+		i++;
+	return (av[i - 1]);
+}
+
+int free_data(t_data **data)
+{
+	t_data *tmp;
+	t_data *next_node;
+
+	tmp = *data;
+	if (!*data)
+		return (1);
+	while(tmp)
+	{
+		next_node = tmp->next;
+		free(tmp);
+		tmp = next_node;
+	}
+	*data = NULL;
+	return (0);
 }

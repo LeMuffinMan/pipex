@@ -100,7 +100,8 @@ SRC_FILES = \
     src/errors.c \
     src/exec.c \
     src/init.c \
-    src/parsing.c
+    src/parsing.c \
+    src/fd_management.c 
 
 OBJ_FILES = $(SRC_FILES:.c=.o)
 OBJ = $(addprefix $(OBJ_DIR)/,$(OBJ_FILES))
