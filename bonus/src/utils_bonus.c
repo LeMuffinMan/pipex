@@ -10,13 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/wait.h>
-#include <unistd.h> 
-#include <stdlib.h>
-#include <errno.h>
-#include "pipex_bonus.h"
 #include "libft.h"
-#include <stdio.h>  // perror
+#include "pipex_bonus.h"
+#include <errno.h>
+#include <stdio.h> // perror
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int	is_a_path(char *s)
 {
@@ -47,9 +47,9 @@ void	free_array(char **s)
 	s = NULL;
 }
 
-char *get_last_arg(char **av)
+char	*get_last_arg(char **av)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (av && av[i])
@@ -57,15 +57,15 @@ char *get_last_arg(char **av)
 	return (av[i - 1]);
 }
 
-int free_data(t_data **data)
+int	free_data(t_data **data)
 {
-	t_data *tmp;
-	t_data *next_node;
+	t_data	*tmp;
+	t_data	*next_node;
 
 	tmp = *data;
 	if (!*data)
 		return (1);
-	while(tmp)
+	while (tmp)
 	{
 		next_node = tmp->next;
 		free(tmp);
@@ -74,4 +74,3 @@ int free_data(t_data **data)
 	*data = NULL;
 	return (0);
 }
-

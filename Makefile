@@ -10,8 +10,8 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME=pipex
-BONUS_NAME=pipex_bonus
+NAME=pipex__
+BONUS_NAME=pipex
 
 CC=cc
 CFLAGS=-Wall -Werror -Wextra -g3 

@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex_bonus.h"
 #include "libft.h"
-#include <stdlib.h>
+#include "pipex_bonus.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 char	*get_path_line(char **envp)

@@ -47,65 +47,49 @@
 ///
 /// REVOIR LIBFT COmpile et virer le header en trop
 
-//utiliser putstrfd
+// utiliser putstrfd
 
-
-int fork_management(t_data **data, t_data **tmp, char **av)
+int	fork_management(t_data **data, t_data **tmp, char **av)
 {
-	(*tmp)->pid = fork();
-  if ((*tmp)->pid == -1)
-    print_errors(data, "fork: ", -1, -1); 
-  if ((*tmp)->pid == 0)
-      parse_redirect_execute(data, tmp, av);
-  else
-  {
-    if ((*tmp) && (*tmp)->fd[1] > 2)
-      close((*tmp)->fd[1]);
-    if ((*tmp)->prev && (*tmp)->prev->fd[0] > 2)
-      close((*tmp)->prev->fd[0]);
-  }
-  if (!(*tmp)->next)
-    close((*tmp)->fd[0]);
-  return (0);
+	while (*tmp)
+	{
+		if ((*tmp) && (*tmp)->next)
+			get_pipe(tmp, data);
+		(*tmp)->pid = fork();
+		if ((*tmp)->pid == -1)
+			print_errors(data, "fork: ", -1, -1);
+		if ((*tmp)->pid == 0)
+			parse_redirect_execute(data, tmp, av);
+		else
+		{
+			if ((*tmp) && (*tmp)->fd[1] > 2)
+				close((*tmp)->fd[1]);
+			if ((*tmp)->prev && (*tmp)->prev->fd[0] > 2)
+				close((*tmp)->prev->fd[0]);
+		}
+		if (!(*tmp)->next)
+			close((*tmp)->fd[0]);
+		*tmp = (*tmp)->next;
+	}
+	exit(wait_children(data));
 }
 
 int	main(int ac, char **av, char **env)
 {
 	t_data	*data;
-	t_data *tmp;
+	t_data	*tmp;
 
 	data = NULL;
 	if (ac == 5)
-  {
-    init_data(&data, av, env);    
-    tmp = data;
-    while(tmp)
-    {
-      if (tmp && tmp->next)
-        get_pipe(&tmp, &data);
-      tmp->pid = fork();
-      if (tmp->pid == -1)
-        print_errors(&data, "fork: ", -1, -1); // voir si errno marche partout comme on veut 
-      if (tmp->pid == 0)
-          parse_redirect_execute(&data, &tmp, av);
-      else
-      {
-        if (tmp && tmp->fd[1] > 2)
-        	close(tmp->fd[1]);
-        if (tmp->prev && tmp->prev->fd[0] > 2)
-          close(tmp->prev->fd[0]);
-      }
-      if (!tmp->next)
-        close(tmp->fd[0]);
-      tmp = tmp->next;
-    }
-    exit(wait_children(&data)); 
-  }
+	{
+		init_data(&data, av, env);
+		tmp = data;
+		fork_management(&data, &tmp, av);
+	}
 	else
 		ft_putstr_fd("Usage : ./pipex infile cmd1 cmd2 outfile", 2);
 	return (0);
 }
-
 
 // si on supprime que la ligne PATH ?
 // env -i / unset PATH ?

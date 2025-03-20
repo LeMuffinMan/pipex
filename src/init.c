@@ -10,16 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "pipex.h"
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "pipex.h"
-#include <stdlib.h>
 
-int add_first_node(t_data **data, char *cmd, char **env, char *infile)
+int	add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
-	t_data *node;
+	t_data	*node;
 
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
@@ -35,10 +35,10 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	return (0);
 }
 
-int add_node(t_data **data, char *cmd, char **env, char *last_arg)
+int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 {
-	t_data *node;
-	t_data *tmp;
+	t_data	*node;
+	t_data	*tmp;
 
 	node = NULL;
 	node = malloc(sizeof(t_data));
@@ -61,9 +61,9 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	return (0);
 }
 
-int init_data(t_data **data, char **av, char **env)
+int	init_data(t_data **data, char **av, char **env)
 {
-	int i;
+	int	i;
 
 	add_first_node(data, av[2], env, av[1]);
 	i = 3;
@@ -74,5 +74,3 @@ int init_data(t_data **data, char **av, char **env)
 	}
 	return (0);
 }
-
-

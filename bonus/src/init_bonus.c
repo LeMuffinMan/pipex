@@ -10,18 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
+#include <fcntl.h> // open
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <fcntl.h>  // open
-#include "libft.h"
 
-int add_first_node(t_data **data, char *cmd, char **env, char *infile)
+int	add_first_node(t_data **data, char *cmd, char **env, char *infile)
 {
-	t_data *node;
+	t_data	*node;
 
 	node = malloc(sizeof(t_data));
 	if (node == NULL)
@@ -37,10 +37,10 @@ int add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	return (0);
 }
 
-int add_node(t_data **data, char *cmd, char **env, char *last_arg)
+int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 {
-	t_data *node;
-	t_data *tmp;
+	t_data	*node;
+	t_data	*tmp;
 
 	node = NULL;
 	node = malloc(sizeof(t_data));
@@ -63,14 +63,12 @@ int add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	return (0);
 }
 
-int here_doc(char **av)
+int	here_doc(char **av)
 {
-  int file;
-  char *line;
-	
-	//mettre le here_doc dans /tnp
-	//faire un join
-	file = open(av[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	int		file;
+	char	*line;
+
+	file = open("/tmp/here_doc", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (file == -1)
 	{
 		ft_putstr_fd("pipex: open error: ", 2);
@@ -85,7 +83,8 @@ int here_doc(char **av)
 			ft_putstr_fd("\n", STDOUT_FILENO);
 			break ;
 		}
-		if (ft_strncmp(line, av[2], ft_strlen(av[2])) == 0 && line[ft_strlen(av[2])] == '\n')
+		if (ft_strncmp(line, av[2], ft_strlen(av[2])) == 0
+			&& line[ft_strlen(av[2])] == '\n')
 		{
 			free(line);
 			break ;
@@ -97,17 +96,17 @@ int here_doc(char **av)
 	return (0);
 }
 
-int init_data(t_data **data, char **av, char **env)
+int	init_data(t_data **data, char **av, char **env)
 {
-	int i;
+	int	i;
 
-  if (ft_strncmp(av[1], "here_doc", 8) == 0)
-  {
+	if (ft_strncmp(av[1], "here_doc", 8) == 0)
+	{
 		here_doc(av);
-  	add_first_node(data, av[3], env, av[1]);
-  	i = 4;
-  }
-  else
+		add_first_node(data, av[3], env, av[1]);
+		i = 4;
+	}
+	else
 	{
 		add_first_node(data, av[2], env, av[1]);
 		i = 3;
@@ -119,5 +118,3 @@ int init_data(t_data **data, char **av, char **env)
 	}
 	return (0);
 }
-
-

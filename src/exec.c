@@ -12,18 +12,18 @@
 
 #include "libft.h"
 #include "pipex.h"
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-//revoir la doc !
-int wait_children(t_data **data)
+// revoir la doc !
+int	wait_children(t_data **data)
 {
-	int status;
-	int exit_code;
-	t_data *tmp;
+	int		status;
+	int		exit_code;
+	t_data	*tmp;
 
 	tmp = *data;
 	exit_code = EXIT_SUCCESS;
@@ -31,11 +31,11 @@ int wait_children(t_data **data)
 	{
 		waitpid(tmp->pid, &status, 0);
 		if (WIFEXITED(status))
-			exit_code = WEXITSTATUS(status); 
+			exit_code = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
 		if (exit_code == EXIT_SUCCESS && WIFEXITED(status))
-			exit_code = WEXITSTATUS(status), printf("exit code = %d\n", exit_code);
+			exit_code = WEXITSTATUS(status);
 		else if (exit_code == EXIT_SUCCESS && WIFSIGNALED(status))
 			exit_code = 128 + WTERMSIG(status);
 		tmp = tmp->next;
@@ -44,10 +44,11 @@ int wait_children(t_data **data)
 	return (exit_code);
 }
 
-//gerer si on me donne PATH et pas d'env
+// gerer si on me donne PATH et pas d'env
 int	execute(t_strs *strs, t_data **data)
 {
-	int exit_code;
+	int	exit_code;
+
 	exit_code = access(strs->path, F_OK);
 	if (!strs->path || exit_code != 0)
 		print_errors(data, "command not found: ", 127, -1);
@@ -60,9 +61,9 @@ int	execute(t_strs *strs, t_data **data)
 	return (0);
 }
 
-void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
+void	parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
-	t_strs strs;
+	t_strs	strs;
 
 	redirect_stdin_stdout(tmp, data, av);
 	strs.path = NULL;
@@ -70,7 +71,7 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	{
 		strs.args = ft_split((*tmp)->cmd, ' ');
 		if (!strs.args)
-			malloc_error(data);	
+			malloc_error(data);
 		if (!strs.args[0])
 			error_cmd_not_found(data, &strs, tmp);
 	}
@@ -79,11 +80,10 @@ void parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 	else if ((*data)->env)
 	{
 		strs.path = get_binary(strs.args[0], (*tmp)->env);
-		if (!strs.path) 
+		if (!strs.path)
 			error_cmd_not_found(data, &strs, tmp);
 	}
 	else
 		error_cmd_not_found(data, &strs, tmp);
 	execute(&strs, data);
 }
-
