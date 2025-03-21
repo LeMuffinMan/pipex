@@ -32,8 +32,6 @@ int	add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	node->env = env;
 	node->next = NULL;
 	node->prev = NULL;
-	/* node->fd[0] = -1; */
-	/* node->fd[1] = -1; */
 	return (0);
 }
 
@@ -58,8 +56,6 @@ int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	node->cmd = cmd;
 	node->env = env;
 	node->next = NULL;
-	/* node->fd[0] = -1; */
-	/* node->fd[1] = -1; */
 	return (0);
 }
 

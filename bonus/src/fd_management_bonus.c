@@ -35,7 +35,8 @@ int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 	if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
 		print_errors(data, "dup2: ", -1, (*tmp)->fd[1]);
 	close((*tmp)->fd[1]);
-	close((*tmp)->next->fd[0]);
+	if ((*tmp)->next)
+		close((*tmp)->next->fd[0]);
 	return (0);
 }
 
@@ -69,8 +70,8 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 		print_errors(data, "dup2: ", -1, (*tmp)->fd[1]);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
 		print_errors(data, "dup2: ", -1, (*tmp)->fd[0]);
-	close((*tmp)->prev->fd[1]);
-	close((*tmp)->fd[0]);
+	/* close((*tmp)->prev->fd[1]); */
+	close((*tmp)->fd[1]);
 	if ((*tmp)->next)
 		close((*tmp)->next->fd[0]);
 	return (0);
@@ -78,10 +79,17 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 
 int	redirect_stdin_stdout(t_data **tmp, t_data **data, char **av)
 {
-	if ((*tmp)->file && ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0)
+	/* if ((*tmp)->file && ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0) */
+	/* 	open_dup_close_input_redirection(data, tmp, av); */
+	/* else if ((*tmp)->file && ft_strncmp((*tmp)->file, get_last_arg(av), */
+	/* 		ft_strlen((*tmp)->file)) == 0) */
+	/* 	open_dup_close_output_redirection(data, tmp, av); */
+	/* else */
+	/* 	open_dup_close_pipe_to_pipe(data, tmp); */
+	/* dprintf(2, "fd %d\n", (*tmp)->fd[1]); */
+	if (!(*tmp)->prev && (*tmp)->next)
 		open_dup_close_input_redirection(data, tmp, av);
-	else if ((*tmp)->file && ft_strncmp((*tmp)->file, get_last_arg(av),
-			ft_strlen((*tmp)->file)) == 0)
+	else if ((*tmp)->prev && !(*tmp)->next)
 		open_dup_close_output_redirection(data, tmp, av);
 	else
 		open_dup_close_pipe_to_pipe(data, tmp);
