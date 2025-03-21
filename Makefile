@@ -10,26 +10,22 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME=pipex
-BONUS_NAME=pipex_bonus
+NAME = pipex
 
-CC=cc
-CFLAGS=-Wall -Werror -Wextra -g3 
-INC=-I include
-INC_LIBFT=-I libft/include
-INC_BONUS=-I bonus/include
+CC = cc
+CFLAGS = -Wall -Werror -Wextra -g3
+INC = -I include
+INC_LIBFT = -I libft/include
+INC_BONUS = -I bonus/include
 
-SRC_DIR=src
-OBJ_DIR=obj
+SRC_DIR = src
+OBJ_DIR = obj
 
 LIBFT_SRC_DIR = libft/src
 LIBFT_OBJ_DIR = libft/obj
 BONUS_SRC_DIR = bonus/src
 BONUS_OBJ_DIR = bonus/obj
 
-# Pour staisfaire le meilleur product manager du monde : TODO
-# Faire une variable pour le chemin 
-# Kenzo : faire la compil de la libft dans le makefile de la libft + y mettre la abs le printf et le gnl
 LIBFT_SRC_FILES = \
     $(LIBFT_SRC_DIR)/ft_atoi.c \
     $(LIBFT_SRC_DIR)/ft_bzero.c \
@@ -102,22 +98,29 @@ SRC_FILES = \
     src/exec.c \
     src/init.c \
     src/parsing.c \
-    src/fd_management.c 
+    src/fd_management.c
 
-OBJ_FILES = $(SRC_FILES:.c=.o)
-OBJ = $(addprefix $(OBJ_DIR)/,$(OBJ_FILES))
-BONUS = $(addprefix $(BONUS_OBJ_DIR)/,$(BONUS_OBJ_FILES))
+OBJ_FILES = $(addprefix $(OBJ_DIR)/, $(SRC_FILES:.c=.o))
 
 LIBFT_A = libft/libft.a
 
-GREEN=\033[32m
-RED=\033[31m
-RESET=\033[0m
+GREEN = \033[32m
+RED = \033[31m
+RESET = \033[0m
+
+# Variable to determine if we are compiling the bonus version
+BONUS = 0
+
+ifeq ($(BONUS), 1)
+    SRC_FILES = $(BONUS_SRC_FILES)
+    OBJ_FILES = $(BONUS_OBJ_FILES)
+    INC += $(INC_BONUS)
+endif
 
 all: $(NAME)
 
-$(NAME): $(OBJ) $(LIBFT_A) Makefile libft/Makefile libft/include/libft.h
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT_A) $(LIBFT_FLAGS) -o $(NAME)
+$(NAME): $(OBJ_FILES) $(LIBFT_A) Makefile libft/Makefile libft/include/libft.h
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(NAME)
 	@echo 
 	@echo "$(GREEN)compilation successful ✅ $(NAME)$(RESET)"
 	@echo 
@@ -129,26 +132,23 @@ $(OBJ_DIR)/%.o: %.c Makefile ./include/pipex.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC) $(INC_LIBFT) -I . -c $< -o $@
 
-bonus: $(BONUS_NAME)
-
 $(BONUS_OBJ_DIR)/%.o: bonus/src/%.c ./bonus/include/pipex_bonus.h Makefile libft/Makefile
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC_BONUS) $(INC_LIBFT) -c $< -o $@
 
-$(BONUS_NAME): $(BONUS_OBJ_FILES) $(LIBFT_A) ./bonus/include/pipex_bonus.h
-	$(CC) $(CFLAGS) $(BONUS_OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(BONUS_NAME)
-	@echo
-	@echo "$(GREEN)compilation successful ✅ $(BONUS_NAME)$(RESET)"
-	@echo
-
 clean:
-	rm -rf $(OBJ_DIR)/*
+	rm -rf $(OBJ_DIR)
+	rm -rf $(BONUS_OBJ_DIR)
+	rm -rf $(LIBFT_OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME) $(BONUS_NAME)
+	rm -f $(NAME)
 	rm -f $(LIBFT_A)
 
 re: fclean all
+
+bonus:
+	@$(MAKE) BONUS=1
 
 FORCE:
 .PHONY: all re clean fclean bonus
