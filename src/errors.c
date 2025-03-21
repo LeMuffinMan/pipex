@@ -17,13 +17,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void	print_errors(t_data **data, char *message, int error_code,
+void	print_errors(t_data **data, char *file_name, int error_code,
 		int fd_to_close)
 {
 	if (fd_to_close > 2)
 		close(fd_to_close);
 	ft_putstr_fd("pipex: ", 2);
-	ft_putstr_fd(message, 2);
+	ft_putstr_fd(file_name, 2);
+	ft_putstr_fd(": ", 2);
 	perror("");
 	close_pipe_free_exit(data, NULL, error_code);
 }

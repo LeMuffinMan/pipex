@@ -23,11 +23,11 @@ int	close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
 		free_array(strs->args);
 	if (strs && strs->path)
 		free(strs->path);
-	if ((*data)->fd[0] && (*data)->fd[0] > 2)
+	if ((*data)->fd[0])
 		close((*data)->fd[0]);
 	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1] > 2)
 		close((*data)->prev->fd[1]);
-	if (*data && (*data)->fd[1] && (*data)->fd[1] > 2)
+	if (*data && (*data)->fd[1])
 		close((*data)->fd[1]);
 	free_data(data);
 	if (exit_code == 0)
@@ -37,13 +37,14 @@ int	close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
 	return (0);
 }
 
-void	print_errors(t_data **data, char *message, int error_code,
+void	print_errors(t_data **data, char *file_name, int error_code,
 		int fd_to_close)
 {
 	if (fd_to_close > 2)
 		close(fd_to_close);
 	ft_putstr_fd("pipex: ", 2);
-	ft_putstr_fd(message, 2);
+	ft_putstr_fd(file_name, 2);
+	ft_putstr_fd(": ", 2);
 	perror("");
 	close_pipe_free_exit(data, NULL, error_code);
 }

@@ -44,7 +44,6 @@ int	wait_children(t_data **data)
 	return (exit_code);
 }
 
-// gerer si on me donne PATH et pas d'env
 int	execute(t_strs *strs, t_data **data)
 {
 	int	exit_code;
@@ -65,7 +64,8 @@ void	parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
 	t_strs	strs;
 
-	redirect_stdin_stdout(tmp, data, av);
+	if ((*tmp)->cmd)
+		redirect_stdin_stdout(tmp, data, av);
 	strs.path = NULL;
 	if ((*tmp)->cmd)
 	{

@@ -31,9 +31,6 @@ int	get_pipe(t_data **node, t_data **data)
 	}
 	(*node)->fd[1] = fd[1];
 	(*node)->next->fd[0] = fd[0];
-	/* dprintf(2, "%s will write in fd %d\n", (*node)->cmd, (*node)->fd[1]); */
-	/* if ((*node)->next) */
-		/* dprintf(2, "%s will read from fd %d\n", (*node)->cmd, (*node)->next->fd[0]); */
 	return (0);
 }
 

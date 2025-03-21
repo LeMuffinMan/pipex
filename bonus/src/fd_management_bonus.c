@@ -29,11 +29,11 @@ int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 	if (file < 0)
 		print_errors(data, "open : ", -1, (*tmp)->fd[1]);
 	if (dup2(file, STDIN_FILENO) == -1)
-		print_errors(data, "1dup2: ", -1, file);
+		print_errors(data, "dup2: ", -1, file);
 	(*tmp)->fd[0] = file;
 	close(file);
 	if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
-		print_errors(data, "2dup2: ", -1, (*tmp)->fd[1]);
+		print_errors(data, "dup2: ", -1, (*tmp)->fd[1]);
 	close((*tmp)->fd[1]);
 	close((*tmp)->next->fd[0]);
 	return (0);
@@ -46,18 +46,18 @@ int	open_dup_close_output_redirection(t_data **data, t_data **tmp, char **av)
 	file = open_outfile(get_last_arg(av), av[1]);
 	if (file < 0)
 	{
-		if (access(av[4], W_OK) != 0)
-			print_errors(data, "open: ", 1, (*tmp)->fd[0]);
-		print_errors(data, "open: ", errno, (*tmp)->fd[0]);
+		if (access(get_last_arg(av), W_OK) != 0)
+			print_errors(data, get_last_arg(av), 1, (*tmp)->fd[0]);
+		print_errors(data, get_last_arg(av), errno, (*tmp)->fd[0]);
 	}
 	if (dup2(file, STDOUT_FILENO) == -1)
-		print_errors(data, "3dup2: ", -1, file);
+		print_errors(data, "dup2: ", -1, file);
 	(*tmp)->fd[1] = file;
 	close(file);
 	if (ft_strncmp(av[1], "here_doc", 8) == 0)
 		unlink_here_doc(data);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
-		print_errors(data, "4dup2: ", -1, (*tmp)->fd[0]);
+		print_errors(data, "dup2: ", -1, (*tmp)->fd[0]);
 	close((*tmp)->fd[0]);
 	close((*tmp)->fd[1]);
 	return (0);
@@ -66,13 +66,13 @@ int	open_dup_close_output_redirection(t_data **data, t_data **tmp, char **av)
 int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 {
 	if (dup2((*tmp)->fd[1], STDOUT_FILENO) == -1)
-		print_errors(data, "5dup2: ", -1, (*tmp)->fd[1]);
+		print_errors(data, "dup2: ", -1, (*tmp)->fd[1]);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
-		print_errors(data, "6dup2: ", -1, (*tmp)->fd[0]);
-	close((*tmp)->fd[1]);
+		print_errors(data, "dup2: ", -1, (*tmp)->fd[0]);
 	close((*tmp)->prev->fd[1]);
 	close((*tmp)->fd[0]);
-	close((*tmp)->next->fd[0]);
+	if ((*tmp)->next)
+		close((*tmp)->next->fd[0]);
 	return (0);
 }
 
