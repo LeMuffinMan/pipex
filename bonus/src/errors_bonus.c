@@ -23,12 +23,14 @@ int	close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
 		free_array(strs->args);
 	if (strs && strs->path)
 		free(strs->path);
-	if ((*data)->fd[0])
+	if ((*data)->prev && (*data)->fd[0])
 		close((*data)->fd[0]);
 	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1] > 2)
 		close((*data)->prev->fd[1]);
-	if (*data && (*data)->fd[1])
+	if ((*data) && (*data)->fd[1])
 		close((*data)->fd[1]);
+	if ((*data)->next && (*data)->next->fd[0])
+		close((*data)->next->fd[0]);
 	free_data(data);
 	if (exit_code == 0)
 		exit(errno);
