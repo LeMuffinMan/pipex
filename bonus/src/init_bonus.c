@@ -6,7 +6,7 @@
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:18:38 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/15 17:27:57 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/20 15:11:58 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ int	add_first_node(t_data **data, char *cmd, char **env, char *infile)
 	node->env = env;
 	node->next = NULL;
 	node->prev = NULL;
-	node->fd[0] = -1;
-	node->fd[1] = -1;
+	/* node->fd[0] = -1; */
+	/* node->fd[1] = -1; */
 	return (0);
 }
 
@@ -58,22 +58,13 @@ int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	node->cmd = cmd;
 	node->env = env;
 	node->next = NULL;
-	node->fd[0] = -1;
-	node->fd[1] = -1;
+	/* node->fd[0] = -1; */
+	/* node->fd[1] = -1; */
 	return (0);
 }
 
-int	here_doc(char **av)
+int	write_in_here_doc(char *line, char *limiter, int file)
 {
-	int		file;
-	char	*line;
-
-	file = open("/tmp/here_doc", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (file == -1)
-	{
-		ft_putstr_fd("pipex: open error: ", 2);
-		perror("");
-	}
 	while (1)
 	{
 		ft_putstr_fd("> ", STDOUT_FILENO);
@@ -83,8 +74,8 @@ int	here_doc(char **av)
 			ft_putstr_fd("\n", STDOUT_FILENO);
 			break ;
 		}
-		if (ft_strncmp(line, av[2], ft_strlen(av[2])) == 0
-			&& line[ft_strlen(av[2])] == '\n')
+		if (ft_strncmp(line, limiter, ft_strlen(limiter)) == 0
+			&& line[ft_strlen(limiter)] == '\n')
 		{
 			free(line);
 			break ;
@@ -92,6 +83,22 @@ int	here_doc(char **av)
 		ft_putstr_fd(line, file);
 		free(line);
 	}
+	return (0);
+}
+
+int	here_doc(char **av)
+{
+	int		file;
+	char	*line;
+
+	line = NULL;
+	file = open("/tmp/here_doc", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (file == -1)
+	{
+		ft_putstr_fd("pipex: open error: ", 2);
+		perror("");
+	}
+	write_in_here_doc(line, av[2], file);
 	close(file);
 	return (0);
 }

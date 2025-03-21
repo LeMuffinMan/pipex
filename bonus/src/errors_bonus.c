@@ -17,6 +17,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+int	close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
+{
+	if (strs && strs->args)
+		free_array(strs->args);
+	if (strs && strs->path)
+		free(strs->path);
+	if ((*data)->fd[0] && (*data)->fd[0] > 2)
+		close((*data)->fd[0]);
+	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1] > 2)
+		close((*data)->prev->fd[1]);
+	if (*data && (*data)->fd[1] && (*data)->fd[1] > 2)
+		close((*data)->fd[1]);
+	free_data(data);
+	if (exit_code == 0)
+		exit(errno);
+	else
+		exit(exit_code);
+	return (0);
+}
+
 void	print_errors(t_data **data, char *message, int error_code,
 		int fd_to_close)
 {
@@ -42,24 +62,4 @@ void	malloc_error(t_data **data)
 	ft_putstr_fd("pipex: malloc error: ", 2);
 	perror("");
 	close_pipe_free_exit(data, NULL, errno);
-}
-
-int	close_pipe_free_exit(t_data **data, t_strs *strs, int exit_code)
-{
-	if (strs && strs->args)
-		free_array(strs->args);
-	if (strs && strs->path)
-		free(strs->path);
-	if ((*data)->fd[0] && (*data)->fd[0] > 2)
-		close((*data)->fd[0]);
-	if ((*data)->prev && (*data)->prev->fd[1] && (*data)->prev->fd[1] > 2)
-		close((*data)->prev->fd[1]);
-	if (*data && (*data)->fd[1] && (*data)->fd[1] > 2)
-		close((*data)->fd[1]);
-	free_data(data);
-	if (exit_code == 0)
-		exit(errno);
-	else
-		exit(exit_code);
-	return (0);
 }

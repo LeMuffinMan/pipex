@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   pipex_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:28:08 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/20 15:20:46 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#ifndef PIPEX_BONUS_H
+# define PIPEX_BONUS_H
 
 # include <sys/wait.h>
 
@@ -36,34 +36,31 @@ typedef struct s_strs
 // a ranger :
 
 // exec.c
-int					execute(t_strs *strs, t_data **data);
 int					wait_children(t_data **data);
-int					close_pipeline_free_exit(t_data **data);
+int					execute(t_strs *strs, t_data **data);
 void				parse_redirect_execute(t_data **data, t_data **tmp,
 						char **av);
 
 // errors.c
-void				error_permission_denied(t_data **data);
-void				error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp);
-void				print_errors(t_data **data, char *message, int error_code, int fd_to_close);
+void				print_errors(t_data **data, char *message, int error_code,
+						int fd_to_close);
+void				error_cmd_not_found(t_data **data, t_strs *strs,
+						t_data **tmp);
 void				malloc_error(t_data **data);
 
 // init.c
-int					free_data(t_data **data);
 int					add_first_node(t_data **data, char *cmd, char **env,
 						char *infile);
 int					add_node(t_data **data, char *cmd, char **env,
 						char *last_arg);
 int					init_data(t_data **data, char **av, char **env);
-char				*get_last_arg(char **av);
 
 // fd_management.c
-int					get_pipe(t_data **node, t_data **data);
-int					open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp);
-int					open_dup_close_output_redirection(t_data **data,
-						t_data **tmp, char **av);
 int					open_dup_close_input_redirection(t_data **data,
 						t_data **tmp, char **av);
+int					open_dup_close_output_redirection(t_data **data,
+						t_data **tmp, char **av);
+int					open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp);
 int					redirect_stdin_stdout(t_data **tmp, t_data **data,
 						char **av);
 
@@ -77,7 +74,13 @@ char				*get_path_line(char **envp);
 // utils.c
 void				free_array(char **s);
 int					is_a_path(char *s);
-int					close_pipe_free_exit(t_data **data, t_strs *strs,
-						int exit_code);
+int					free_data(t_data **data);
+char				*get_last_arg(char **av);
+
+// here_doc_utils.c
+int					open_outfile(char *file_name, char *here_doc);
+int					unlink_here_doc(t_data **data);
+
+
 
 #endif

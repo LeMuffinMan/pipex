@@ -10,8 +10,8 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME=pipex__
-BONUS_NAME=pipex
+NAME=pipex
+BONUS_NAME=pipex_bonus
 
 CC=cc
 CFLAGS=-Wall -Werror -Wextra -g3 
@@ -90,7 +90,8 @@ BONUS_SRC_FILES = \
     bonus/src/parsing_bonus.c \
     bonus/src/pipex_bonus.c \
     bonus/src/fd_management_bonus.c \
-    bonus/src/utils_bonus.c
+    bonus/src/utils_bonus.c \
+    bonus/src/utils_here_doc_bonus.c
 
 BONUS_OBJ_FILES = $(addprefix $(BONUS_OBJ_DIR)/, $(subst bonus/src/, , $(BONUS_SRC_FILES:.c=.o)))
 

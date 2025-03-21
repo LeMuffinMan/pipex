@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// revoir la doc !
 int	wait_children(t_data **data)
 {
 	int		status;
@@ -44,7 +43,6 @@ int	wait_children(t_data **data)
 	return (exit_code);
 }
 
-// gerer si on me donne PATH et pas d'env
 int	execute(t_strs *strs, t_data **data)
 {
 	int	exit_code;

@@ -6,7 +6,7 @@
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/08 15:28:08 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/20 15:14:39 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,10 @@ void				parse_redirect_execute(t_data **data, t_data **tmp,
 
 // errors.c
 void				error_permission_denied(t_data **data);
-void				error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp);
-void				print_errors(t_data **data, char *message, int error_code, int fd_to_close);
+void				error_cmd_not_found(t_data **data, t_strs *strs,
+						t_data **tmp);
+void				print_errors(t_data **data, char *message, int error_code,
+						int fd_to_close);
 void				malloc_error(t_data **data);
 
 // init.c

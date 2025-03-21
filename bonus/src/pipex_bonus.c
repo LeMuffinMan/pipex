@@ -6,30 +6,36 @@
 /*   By: oelleaum <oelleaum@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 16:29:17 by oelleaum          #+#    #+#             */
-/*   Updated: 2025/03/15 17:27:33 by oelleaum         ###   ########lyon.fr   */
+/*   Updated: 2025/03/20 15:21:03 by oelleaum         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <stdlib.h> // exit
+#include <stdlib.h> 
 #include <unistd.h>
+#include <stdio.h> 
 
-/// access(const char *pathname, int mode)
-///- F_OK : file exists
-///- R_OK : readable
-///- W_OK : writable
-///- X_OK : executable
-///
-/// errno : variable globale qui stock le dernier code d'erreur de l'appel
-/// systeme echoue
-/// strerror a la place ?
-///
-/// REVOIR LIBFT COmpile et virer le header en trop
+int	get_pipe(t_data **node, t_data **data)
+{
+	int	fd[2];
 
-// verifier les protection des fonctions qui foirent
-// mettre un max fd dans l'include ?
+	if (pipe(fd) == -1)
+	{
+		ft_putstr_fd("pipex: pipe error: ", 2);
+		perror("");
+		ft_putstr_fd("\n", 2);
+		free_data(data);
+		exit(errno);
+	}
+	(*node)->fd[1] = fd[1];
+	(*node)->next->fd[0] = fd[0];
+	/* dprintf(2, "%s will write in fd %d\n", (*node)->cmd, (*node)->fd[1]); */
+	/* if ((*node)->next) */
+		/* dprintf(2, "%s will read from fd %d\n", (*node)->cmd, (*node)->next->fd[0]); */
+	return (0);
+}
 
 int	fork_management(t_data **data, t_data **tmp, char **av)
 {
@@ -44,10 +50,10 @@ int	fork_management(t_data **data, t_data **tmp, char **av)
 			parse_redirect_execute(data, tmp, av);
 		else
 		{
-			if ((*tmp) && (*tmp)->fd[1] > 2)
+			if ((*tmp) && (*tmp)->next)
 				close((*tmp)->fd[1]);
-			if ((*tmp)->prev && (*tmp)->prev->fd[0] > 2)
-				close((*tmp)->prev->fd[0]);
+			if ((*tmp)->prev)
+				close((*tmp)->fd[0]);
 		}
 		if (!(*tmp)->next)
 			close((*tmp)->fd[0]);
@@ -56,7 +62,6 @@ int	fork_management(t_data **data, t_data **tmp, char **av)
 	exit(wait_children(data));
 }
 
-/// proteger is infile ou outfile est /dev/urandom
 int	main(int ac, char **av, char **env)
 {
 	t_data	*data;
@@ -73,21 +78,3 @@ int	main(int ac, char **av, char **env)
 		ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n", 1);
 	return (0);
 }
-
-// virer le here doc de src !!! : faire le /tmp
-
-/* oelleaum@z2r5p6:~/GitPerso/pipex$ ./pipex_bonus infile "echo 'hello'" "sudo apt update" outfile */
-/* new pipe : in = 4 out = 3 */
-/* cmd1 : echo 'hello' will write in fd 4 */
-/* cmd2 : sudo apt update wait input from fd 3 */
-/**/
-/* pipex: open error: Bad file descriptor */
-/* pipex: command not found: sudo apt update */
-/* oelleaum@z2r5p6:~/GitPerso/pipex$ echo $? */
-/* 139 */
-
-/* valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --show-mismatched-frees=yes --track-fds=yes --trace-children=yes env
-	-i ./pipex_bonus infile "cat" "cat"  outfile */
-// des still reachables dans les deux childs
-// 2 free manquants mais pas de definitely lost ?
-// dans les deux childs
