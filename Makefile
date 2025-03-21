@@ -108,7 +108,6 @@ GREEN = \033[32m
 RED = \033[31m
 RESET = \033[0m
 
-# Variable to determine if we are compiling the bonus version
 BONUS = 0
 
 ifeq ($(BONUS), 1)
