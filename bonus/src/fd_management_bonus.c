@@ -13,10 +13,10 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <fcntl.h>  // open
-#include <stdio.h>  // perror
-#include <stdlib.h> // exit
-#include <unistd.h> // fork, pipe, dup2, execve, access, close, read, write
+#include <fcntl.h>  
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <unistd.h>
 
 int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 {

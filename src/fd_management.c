@@ -13,10 +13,10 @@
 #include "libft.h"
 #include "pipex.h"
 #include <errno.h>
-#include <fcntl.h>  // open
-#include <stdio.h>  // perror
-#include <stdlib.h> // exit
-#include <unistd.h> // fork, pipe, dup2, execve, access, close, read, write
+#include <fcntl.h>  
+#include <stdio.h> 
+#include <stdlib.h>
+#include <unistd.h> 
 
 int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 {
@@ -39,7 +39,6 @@ int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 	return (0);
 }
 
-// gerer open error !
 int	open_dup_close_output_redirection(t_data **data, t_data **tmp, char **av)
 {
 	int	file;
@@ -74,7 +73,6 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 	return (0);
 }
 
-//testerl a modif !! 
 int	redirect_stdin_stdout(t_data **tmp, t_data **data, char **av)
 {
 	if (!(*tmp)->prev && (*tmp)->next)

@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// revoir la doc !
 int	wait_children(t_data **data)
 {
 	int		status;

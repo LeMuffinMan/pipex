@@ -13,7 +13,7 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <fcntl.h> // open
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -59,7 +59,6 @@ int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	return (0);
 }
 
-//proteger le write ?
 int	write_in_here_doc(char *line, char *limiter, int file)
 {
 	while (1)

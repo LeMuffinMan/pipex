@@ -13,7 +13,7 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <fcntl.h> // open
+#include <fcntl.h> 
 #include <unistd.h>
 
 int	open_outfile(char *file_name, char *here_doc)

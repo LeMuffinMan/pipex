@@ -13,7 +13,7 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <stdio.h> // perror
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
