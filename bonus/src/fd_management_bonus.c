@@ -79,14 +79,6 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 
 int	redirect_stdin_stdout(t_data **tmp, t_data **data, char **av)
 {
-	/* if ((*tmp)->file && ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0) */
-	/* 	open_dup_close_input_redirection(data, tmp, av); */
-	/* else if ((*tmp)->file && ft_strncmp((*tmp)->file, get_last_arg(av), */
-	/* 		ft_strlen((*tmp)->file)) == 0) */
-	/* 	open_dup_close_output_redirection(data, tmp, av); */
-	/* else */
-	/* 	open_dup_close_pipe_to_pipe(data, tmp); */
-	/* dprintf(2, "fd %d\n", (*tmp)->fd[1]); */
 	if (!(*tmp)->prev && (*tmp)->next)
 		open_dup_close_input_redirection(data, tmp, av);
 	else if ((*tmp)->prev && !(*tmp)->next)

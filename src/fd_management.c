@@ -26,7 +26,7 @@ int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 		close((*tmp)->next->fd[0]);
 	file = open(av[1], O_RDONLY);
 	if (file < 0)
-		print_errors(data, "open : ", -1, (*tmp)->fd[1]);
+		print_errors(data, av[1], -1, (*tmp)->fd[1]);
 	if (dup2(file, STDIN_FILENO) == -1)
 		print_errors(data, "dup2: ", -1, file);
 	if ((*tmp)->fd[0] > 2)
@@ -74,12 +74,12 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 	return (0);
 }
 
+//testerl a modif !! 
 int	redirect_stdin_stdout(t_data **tmp, t_data **data, char **av)
 {
-	if ((*tmp)->file && ft_strncmp((*tmp)->file, av[1], ft_strlen(av[1])) == 0)
+	if (!(*tmp)->prev && (*tmp)->next)
 		open_dup_close_input_redirection(data, tmp, av);
-	else if ((*tmp)->file && ft_strncmp((*tmp)->file, get_last_arg(av),
-			ft_strlen((*tmp)->file)) == 0)
+	else if ((*tmp)->prev && !(*tmp)->next)
 		open_dup_close_output_redirection(data, tmp, av);
 	else
 		open_dup_close_pipe_to_pipe(data, tmp);

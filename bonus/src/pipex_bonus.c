@@ -74,6 +74,6 @@ int	main(int ac, char **av, char **env)
 		fork_management(&data, &tmp, av);
 	}
 	else
-		ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n", 1);
+		ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n./pipex infile cmd1 cmd2 ... cmdn outfile", 1);
 	return (0);
 }

@@ -59,6 +59,7 @@ int	add_node(t_data **data, char *cmd, char **env, char *last_arg)
 	return (0);
 }
 
+//proteger le write ?
 int	write_in_here_doc(char *line, char *limiter, int file)
 {
 	while (1)
