@@ -33,8 +33,6 @@ typedef struct s_strs
 	char			*av;
 }					t_strs;
 
-// a ranger :
-
 // exec.c
 int					wait_children(t_data **data);
 int					execute(t_strs *strs, t_data **data);

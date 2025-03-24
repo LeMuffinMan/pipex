@@ -50,7 +50,7 @@ int	open_dup_close_output_redirection(t_data **data, t_data **tmp, char **av)
 	if (file < 0)
 	{
 		if (access(av[4], W_OK) != 0)
-			print_errors(data, av[4], errno, (*tmp)->fd[0]);
+			print_errors(data, av[4], 1, (*tmp)->fd[0]);
 		print_errors(data, av[4], errno, (*tmp)->fd[0]);
 	}
 	if (dup2(file, STDOUT_FILENO) == -1)

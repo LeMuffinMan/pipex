@@ -68,7 +68,8 @@ void	parse_redirect_execute(t_data **data, t_data **tmp, char **av)
 {
 	t_strs	strs;
 
-	redirect_stdin_stdout(tmp, data, av);
+	if ((*tmp)->cmd)
+		redirect_stdin_stdout(tmp, data, av);
 	strs.path = NULL;
 	if ((*tmp)->cmd)
 	{

@@ -53,8 +53,7 @@ int	execute(t_strs *strs, t_data **data)
 	if (access(strs->path, X_OK != 0))
 	{
 		error_msg = ft_strjoin("pipex: ", strs->args[0]);
-		ft_putstr_fd(error_msg, 2);
-		perror(" ");
+		perror(error_msg);
 		free(error_msg);
 		free_data(data);
 		free(strs->path);
