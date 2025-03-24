@@ -79,6 +79,4 @@ char				*get_last_arg(char **av);
 int					open_outfile(char *file_name, char *here_doc);
 int					unlink_here_doc(t_data **data);
 
-
-
 #endif

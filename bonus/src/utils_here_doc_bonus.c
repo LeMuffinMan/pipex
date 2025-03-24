@@ -30,4 +30,3 @@ int	unlink_here_doc(t_data **data)
 		print_errors(data, "unlink: ", errno, -1);
 	return (0);
 }
-

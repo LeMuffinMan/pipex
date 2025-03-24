@@ -45,9 +45,9 @@ int	wait_children(t_data **data)
 
 int	execute(t_strs *strs, t_data **data)
 {
-	char *error_msg;
+	char	*error_msg;
 
-	if (access(strs->path, F_OK != 0) || !strs->path) 
+	if (access(strs->path, F_OK != 0) || !strs->path)
 		print_errors(data, "command not found: ", 127, -1);
 	if (access(strs->path, X_OK != 0))
 	{

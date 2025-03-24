@@ -13,9 +13,9 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 #include <errno.h>
-#include <stdlib.h> 
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h> 
 
 int	get_pipe(t_data **node, t_data **data)
 {
@@ -31,8 +31,6 @@ int	get_pipe(t_data **node, t_data **data)
 	}
 	(*node)->fd[1] = fd[1];
 	(*node)->next->fd[0] = fd[0];
-	/* dprintf(2, "%s will write in fd %d\n", (*node)->cmd, (*node)->fd[1]); */
-	/* dprintf(2, "%s will read in fd %d\n", (*node)->next->cmd, (*node)->next->fd[0]); */
 	return (0);
 }
 
@@ -74,6 +72,7 @@ int	main(int ac, char **av, char **env)
 		fork_management(&data, &tmp, av);
 	}
 	else
-		ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n./pipex infile cmd1 cmd2 ... cmdn outfile", 1);
+		ft_putstr_fd("Usage : ./pipex here_doc LIMITER cmd1 cmd2 outfile\n \
+								./pipex infile cmd1 cmd2 ... cmdn outfile", 1);
 	return (0);
 }

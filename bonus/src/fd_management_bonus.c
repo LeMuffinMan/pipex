@@ -70,7 +70,6 @@ int	open_dup_close_pipe_to_pipe(t_data **data, t_data **tmp)
 		print_errors(data, "dup2: ", -1, (*tmp)->fd[1]);
 	if (dup2((*tmp)->fd[0], STDIN_FILENO) == -1)
 		print_errors(data, "dup2: ", -1, (*tmp)->fd[0]);
-	/* close((*tmp)->prev->fd[1]); */
 	close((*tmp)->fd[1]);
 	if ((*tmp)->next)
 		close((*tmp)->next->fd[0]);

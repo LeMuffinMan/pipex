@@ -20,7 +20,7 @@
 void	print_errors(t_data **data, char *file_name, int error_code,
 		int fd_to_close)
 {
-	char *error_msg;
+	char	*error_msg;
 
 	error_msg = ft_strjoin("pipex: ", file_name);
 	if (fd_to_close > 2)
@@ -32,7 +32,7 @@ void	print_errors(t_data **data, char *file_name, int error_code,
 
 void	error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp)
 {
-	char *error_msg;
+	char	*error_msg;
 
 	error_msg = ft_strjoin("pipex: ", (*tmp)->cmd);
 	ft_putstr_fd(error_msg, 2);
