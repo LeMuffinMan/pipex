@@ -45,16 +45,22 @@ int	wait_children(t_data **data)
 
 int	execute(t_strs *strs, t_data **data)
 {
-	int	exit_code;
+	char *error_msg;
 
-	exit_code = access(strs->path, F_OK);
-	if (!strs->path || exit_code != 0)
+	if (access(strs->path, F_OK != 0) || !strs->path) 
 		print_errors(data, "command not found: ", 127, -1);
-	exit_code = access(strs->path, X_OK);
-	if (exit_code != 0)
-		print_errors(data, strs->args[0], 126, -1);
-	exit_code = execve(strs->path, strs->args, (*data)->env);
-	if (exit_code != 0)
+	if (access(strs->path, X_OK != 0))
+	{
+		error_msg = ft_strjoin("pipex: ", strs->args[0]);
+		ft_putstr_fd(error_msg, 2);
+		perror(" ");
+		free(error_msg);
+		free_data(data);
+		free(strs->path);
+		free(strs->args);
+		exit(errno);
+	}
+	if (execve(strs->path, strs->args, (*data)->env) != 0)
 		print_errors(data, "execve: ", 0, -1);
 	return (0);
 }
