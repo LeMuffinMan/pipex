@@ -20,28 +20,30 @@
 void	print_errors(t_data **data, char *file_name, int error_code,
 		int fd_to_close)
 {
+	char *error_msg;
+
+	error_msg = ft_strjoin("pipex: ", file_name);
 	if (fd_to_close > 2)
 		close(fd_to_close);
-	ft_putstr_fd("pipex: ", 2);
-	ft_putstr_fd(file_name, 2);
-	ft_putstr_fd(": ", 2);
-	perror("");
+	perror(error_msg);
+	free(error_msg);
 	close_pipe_free_exit(data, NULL, error_code);
 }
 
 void	error_cmd_not_found(t_data **data, t_strs *strs, t_data **tmp)
 {
-	ft_putstr_fd("pipex: command not found: ", 2);
-	if ((*tmp)->cmd)
-		ft_putstr_fd((*tmp)->cmd, 2);
-	ft_putstr_fd("\n", 2);
+	char *error_msg;
+
+	error_msg = ft_strjoin("pipex: ", (*tmp)->cmd);
+	ft_putstr_fd(error_msg, 2);
+	ft_putstr_fd(": command not found\n", 2);
+	free(error_msg);
 	close_pipe_free_exit(data, strs, 127);
 }
 
 void	malloc_error(t_data **data)
 {
-	ft_putstr_fd("pipex: malloc error: ", 2);
-	perror("");
+	perror("pipex: malloc error");
 	close_pipe_free_exit(data, NULL, errno);
 }
 
