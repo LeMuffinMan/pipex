@@ -27,7 +27,7 @@ int	open_dup_close_input_redirection(t_data **data, t_data **tmp, char **av)
 	else
 		file = open(av[1], O_RDONLY);
 	if (file < 0)
-		print_errors(data, "open : ", -1, (*tmp)->fd[1]);
+		print_errors(data, av[1], -1, (*tmp)->fd[1]);
 	if (dup2(file, STDIN_FILENO) == -1)
 		print_errors(data, "dup2: ", -1, file);
 	(*tmp)->fd[0] = file;
