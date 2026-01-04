@@ -120,9 +120,9 @@ all: $(NAME)
 
 $(NAME): $(OBJ_FILES) $(LIBFT_A) Makefile libft/Makefile libft/include/libft.h
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(LIBFT_A) $(LIBFT_FLAGS) -o $(NAME)
-	@echo 
+	@echo
 	@echo "$(GREEN)compilation successful ✅ $(NAME)$(RESET)"
-	@echo 
+	@echo
 
 $(LIBFT_A): $(LIBFT_SRC_FILES) FORCE
 	@$(MAKE) --no-print-directory -C libft
